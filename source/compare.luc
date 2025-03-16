@@ -1,0 +1,25 @@
+// Remember to set adder to subtraction mode when testing!!
+
+module compare (
+    input z,
+    input v,
+    input n,
+    input alufn[6],
+    output cmp
+) {
+    mux_4 mux_4();
+    
+    sig vn[1];
+    
+    always {
+        vn = v ^ n;
+        mux_4.in[0] = 0 // Unused input
+        mux_4.in[1] = z
+        mux_4.in[2] = vn
+        mux_4.in[3] = vn || z
+        mux_4.s0 = alufn[1]
+        mux_4.s1 = alufn[2]
+        cmp = mux_4.out
+        
+    }
+}

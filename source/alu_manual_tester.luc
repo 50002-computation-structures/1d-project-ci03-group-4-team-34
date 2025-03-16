@@ -1,0 +1,153 @@
+module alu_manual_tester#(
+    CLK_FREQ ~ 1000 : CLK_FREQ > 0) 
+(
+    input clk,  // clock
+    input rst,  // reset
+    input io_button[5],
+    input io_dip[3][8],
+    output io_led[3][8],
+    output io_segment[8],
+    output io_select[4]
+) {
+     const SEVEN_SEG_DIV = $is_sim() ? 3 : 16
+    .clk(clk) {
+     
+        edge_detector io_button_edge[5](#RISE(5x{{1}}), #FALL(5x{{0}}))
+        button_conditioner io_button_cond[5](#CLK_FREQ(5x{{$resize(CLK_FREQ, $width(10000000))}})) 
+        .rst(rst) {
+            
+            multi_seven_seg seg(#DIV(SEVEN_SEG_DIV)) 
+                 
+        }
+    }
+    
+    alu alu;
+    
+    enum States{
+        IDLE, 
+        SET_A_LOW, 
+        SET_A_HIGH,
+        SET_B_LOW,
+        SET_B_HIGH,
+        VIEW_A_LOW,
+        VIEW_A_HIGH,
+        VIEW_B_LOW,
+        VIEW_B_HIGH,
+        VIEW_OUTPUT_LOW,
+        VIEW_OUTPUT_HIGH
+        }
+    
+    // Store states in DFFs
+    dff tester_state[4](#INIT(States.IDLE),.clk(clk));
+    dff a_temp[32](.clk(clk), .rst(rst));
+    dff b_temp[32](.clk(clk), .rst(rst));
+    
+    bin_to_dec decimal_renderer(#DIGITS(4), #LEADING_ZEROS(1))
+    always {        
+        // condition the io buttons, then take **rising** edges only
+        io_button_cond.in = io_button
+        io_button_edge.in = io_button_cond.out
+              
+        // Connect inputs to ALU 
+        alu.a = a_temp.q; 
+        alu.b = b_temp.q;
+        alu.alufn = io_dip[0][7:2] 
+        
+        // Default is 0
+        io_led = 3x{ {8h00} }
+
+        // Map the flags to LEDs
+
+        io_led[0][2] = alu.z
+        io_led[0][1] = alu.v
+        io_led[0][0] = alu.n
+        
+        
+        // Update the state on each cycle
+        tester_state.d = tester_state.q
+        
+        case (tester_state.q) {
+            States.IDLE: 
+                if (io_button_edge.out[1]) {
+                    tester_state.d = States.SET_A_LOW
+                } 
+            States.SET_A_LOW:
+                // The 16 bits currently set in io_dip[2] and io_dip[1] are stored in a_temp[15:0]
+                a_temp.d[15:8] = io_dip[2];
+                a_temp.d[7:0] = io_dip[1];
+                if (io_button_edge.out[1]) {
+                    tester_state.d = States.SET_A_HIGH
+                } 
+            States.SET_A_HIGH:
+                // The 16 bits currently set in io_dip[2] and io_dip[1] are stored in a_temp[31:16]
+                a_temp.d[31:24] = io_dip[2];
+                a_temp.d[23:16] = io_dip[1];
+                if (io_button_edge.out[1]) {
+                    tester_state.d = States.SET_B_LOW
+                }   
+            States.SET_B_LOW:
+                // The 16 bits currently set in io_dip[2] and io_dip[1] are stored in b_temp[15:0]
+                b_temp.d[15:8] = io_dip[2];
+                b_temp.d[7:0] = io_dip[1];
+                if (io_button_edge.out[1]) {
+                    tester_state.d = States.SET_B_HIGH
+                } 
+            States.SET_B_HIGH:
+                // The 16 bits currently set in io_dip[2] and io_dip[1] are stored in b_temp[31:16]
+                b_temp.d[31:24] = io_dip[2];
+                b_temp.d[23:16] = io_dip[1];
+                if (io_button_edge.out[1]) {
+                    tester_state.d = States.VIEW_A_LOW
+                }   
+            States.VIEW_A_LOW:
+                // The lower 16 bits of a_temp light up the led
+                io_led[2] = a_temp.q[15:8]
+                io_led[1] = a_temp.q[7:0]              
+                if (io_button_edge.out[1]) {
+                tester_state.d = States.VIEW_A_HIGH 
+                }
+            States.VIEW_A_HIGH:
+                // The higher 16 bits of a_temp light up the led
+                io_led[2] = a_temp.q[31:24]
+                io_led[1] = a_temp.q[23:16]
+                              
+                if (io_button_edge.out[1]) {
+                tester_state.d = States.VIEW_B_LOW 
+                }
+            States.VIEW_B_LOW:
+                // The lower 16 bits of b_temp light up the led
+                io_led[2] = b_temp.q[15:8]
+                io_led[1] = b_temp.q[7:0]              
+                if (io_button_edge.out[1]) {
+                tester_state.d = States.VIEW_B_HIGH 
+                }
+            States.VIEW_B_HIGH:
+                // The higher 16 bits of b_temp light up the led
+                io_led[2] = b_temp.q[31:24]
+                io_led[1] = b_temp.q[23:16]           
+                if (io_button_edge.out[1]) {
+                tester_state.d = States.VIEW_OUTPUT_LOW 
+                }
+            States.VIEW_OUTPUT_LOW:
+                // The lower 16 bits of alu.out light up the led
+                io_led[2] = alu.out[15:8]
+                io_led[1] = alu.out[7:0]              
+                if (io_button_edge.out[1]) {
+                tester_state.d = States.VIEW_OUTPUT_HIGH 
+                }
+            
+            States.VIEW_OUTPUT_HIGH:
+                // The highr 16 bits of a_temp light up the led
+                io_led[2] = alu.out[31:24]
+                io_led[1] = alu.out[23:16]
+                if (io_button_edge.out[1]) {
+                tester_state.d = States.IDLE 
+                }  
+        }
+        
+        decimal_renderer.value = tester_state.q
+        seg.values = decimal_renderer.digits
+        io_segment = ~seg.seg
+        io_select = ~seg.sel
+    }
+}
