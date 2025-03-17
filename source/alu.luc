@@ -10,10 +10,14 @@ module alu (
     // Instantiating submodules
     adder adder(#SIZE(32));
     compare compare();
-    boolean boolean(#SIZE(32))
+    boolean boolean(#SIZE(32));
     shifter shifter();
     multiplier multiplier();
     divider divider();
+    modulus modulus();
+    cmpmt cmpmt();
+    
+
 
     always {
         // Adder logic
@@ -48,21 +52,39 @@ module alu (
         divider.a = a
         divider.b = b
         
+        //modulus logic
+        modulus.a = a
+        modulus.b = b
+        
+        //cmpmt logic
+        cmpmt.a = a;
+        cmpmt.alufn = alufn[0];
+        
         // ALU output logic based on ALUFN[5:4]
         if (alufn[5:4] == 2b00) {
             if (alufn[1:0] == 2b10) {
                 out = multiplier.mul;
             } else if (alufn[1:0] == 2b11) {
-                out = divider.d
+                out = divider.d;
             } else {
-                out = adder.out
-            }
+                out = adder.out;
+            } 
         } else if (alufn[5:4] == 2b11) {
             out = c{31x{b0}, compare.cmp};  // Concatenate compare result to 32 bits
         } else if (alufn[5:4] == 2b01) {
-            out = boolean.bool;
+            if (alufn[3:0] == 4b0100) {  // Bitwise NOT (~a) 
+                out = cmpmt.m;
+            } else if (alufn[3:0] == 4b0101) {  // Two’s Complement (-a)
+                out = cmpmt.m;
+            } else {
+                out = boolean.bool; // Other Boolean Operations
+            }
         } else if (alufn[5:4] == 2b10) {
             out = shifter.shift;
+        }else if (alufn == 6b000111) { 
+            out = ~(a & b); //NAND IS DONE HERE
+        } else if (alufn[1:0] == 2b01) {
+                out = modulus.m; 
         } else {
             // Default case (optional)
             out = 32b0;  // Default to zero if no valid ALUFN[5:4] match
