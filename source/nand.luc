@@ -1,6 +1,6 @@
 module nand (
-    input a[32], // dividend
-    input b[32], // divisor
+    input a[32],
+    input b[32], 
     output out[32] // a/b
   ) {
 
