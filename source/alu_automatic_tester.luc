@@ -109,16 +109,38 @@ module alu_automatic_tester#(
                 } else {
                     io_led[2][7:0] =  8b11111111;  // Incorrect is on the left sie
                 }
-                // Check if delay period has elapsed
-                if (delay_counter.q == TEST_DELAY - 1) {
-                    // Move to next test case or return to IDLE
-                    test_id.d = test_id.q + 1;
-                    if (test_id.q + 1 < NUM_TEST_CASES) {
-                        tester_state.d = States.RUN;
+                
+                // Handle delay counter and transitions
+                if (delay_counter.q < TEST_DELAY - 1) {
+                    delay_counter.d = delay_counter.q + 1;
+                } else {
+                    // After delay completes, check result
+                    if (modified_alu_out == TEST_CASES[test_id.q].expected) {
+                        // Correct: Proceed to next test
+                        test_id.d = test_id.q + 1;
+                        if (test_id.q + 1 < NUM_TEST_CASES) {
+                            tester_state.d = States.RUN;
+                        } else {
+                            tester_state.d = States.IDLE;
+                        }
+                        delay_counter.d = 0;  // Reset for next RUN
                     } else {
-                        tester_state.d = States.IDLE;
+                        // Error: Freeze delay_counter and wait for button press
+                        delay_counter.d = TEST_DELAY - 1;  // Stop counter
                     }
-                    delay_counter.d = 0;  // Reset counter for next use
+                }
+
+                // Check for button press to resume after error (any time after delay completes)
+                if (delay_counter.q == TEST_DELAY - 1 && modified_alu_out != TEST_CASES[test_id.q].expected) {
+                    if (io_button_edge.out[1]) {  // Button pressed
+                        test_id.d = test_id.q + 1;
+                        if (test_id.q + 1 < NUM_TEST_CASES) {
+                            tester_state.d = States.RUN;
+                            delay_counter.d = 0;  // Reset counter for RUN
+                        } else {
+                            tester_state.d = States.IDLE;
+                        }
+                    }
                 }
         }
 
