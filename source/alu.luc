@@ -15,9 +15,10 @@ module alu (
     multiplier multiplier();
     divider divider();
     modulus modulus();
-    cmpmt cmpmt();
+    neg neg();
+    not not();
+    nand nand();
     
-
 
     always {
         // Adder logic
@@ -52,42 +53,59 @@ module alu (
         divider.a = a
         divider.b = b
         
-        //modulus logic
+        // modulus logic
         modulus.a = a
         modulus.b = b
         
-        //cmpmt logic
-        cmpmt.a = a;
-        cmpmt.alufn = alufn[0];
+        // neg logic
+        neg.a = a;
         
-        // ALU output logic based on ALUFN[5:4]
-        if (alufn[5:4] == 2b00) {
-            if (alufn[1:0] == 2b10) {
-                out = multiplier.mul;
-            } else if (alufn[1:0] == 2b11) {
-                out = divider.d;
-            } else {
-                out = adder.out;
-            } 
-        } else if (alufn[5:4] == 2b11) {
-            out = c{31x{b0}, compare.cmp};  // Concatenate compare result to 32 bits
-        } else if (alufn[5:4] == 2b01) {
-            if (alufn[3:0] == 4b0100) {  // Bitwise NOT (~a) 
-                out = cmpmt.m;
-            } else if (alufn[3:0] == 4b0101) {  // Two’s Complement (-a)
-                out = cmpmt.m;
-            } else {
-                out = boolean.bool; // Other Boolean Operations
-            }
-        } else if (alufn[5:4] == 2b10) {
+        // not logic
+        not.a = a;
+        
+        // nand logic
+        nand.a = a;
+        nand.b = b;
+        
+        // Explicit 6-bit ALUFN comparisons
+        if (alufn == 6b000000) {          // ADD
+            out = adder.out;
+        } else if (alufn == 6b000001) {   // SUB
+            out = adder.out;
+        } else if (alufn == 6b000010) {   // MUL
+            out = multiplier.mul;
+        } else if (alufn == 6b000011) {   // DIV
+            out = divider.d;
+        } else if (alufn == 6b000100) {   // MOD
+            out = modulus.m;
+        } else if (alufn == 6b000101) {   // NEG
+            out = neg.out;
+        } else if (alufn == 6b011000) {   // AND
+            out = boolean.bool;
+        } else if (alufn == 6b011110) {   // OR
+            out = boolean.bool;
+        } else if (alufn == 6b011011) {   // NOT
+            out = not.out;
+        } else if (alufn == 6b011001) {   // NAND
+            out = nand.out;
+        } else if (alufn == 6b010110) {   // XOR
+            out = boolean.bool;
+        } else if (alufn == 6b011010) {   // LDR (A)
+            out = a;
+        } else if (alufn == 6b100000) {   // SHL
             out = shifter.shift;
-        }else if (alufn == 6b000111) { 
-            out = ~(a & b); //NAND IS DONE HERE
-        } else if (alufn[1:0] == 2b01) {
-                out = modulus.m; 
+        } else if (alufn == 6b100001) {   // SHR
+            out = shifter.shift;
+        } else if (alufn == 6b100011) {   // SRA
+            out = shifter.shift;
+        } else if (alufn == 6b110011) {   // CMPEQ
+            out = c{31x{b0}, compare.cmp};
+        } else if (alufn == 6b110101) {   // CMPLT
+            out = c{31x{b0}, compare.cmp};
+        } else if (alufn == 6b110111) {   // CMPLE
+            out = c{31x{b0}, compare.cmp};
         } else {
-            // Default case (optional)
-            out = 32b0;  // Default to zero if no valid ALUFN[5:4] match
+            out = 32b0;  // Default case
         }
     }
 }
