@@ -164,12 +164,6 @@
             {
                 "file": {
                     "type": "DiskFile",
-                    "path": "source/cmpmt.luc"
-                }
-            },
-            {
-                "file": {
-                    "type": "DiskFile",
                     "path": "source/nand.luc"
                 }
             },
