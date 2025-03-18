@@ -12,9 +12,6 @@ module rca #(
     
     always {
         // implement ripple-carry-adder logic here 
-        // cout = 0
-        // s = 0 
-        
         fa.a = a
         fa.b = b
         fa.cin = 0;
@@ -27,7 +24,6 @@ module rca #(
             }
         }
         s = fa.s;
-        cout = fa.cout
-               
+        cout = fa.cout               
     }
 }
