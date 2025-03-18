@@ -12,7 +12,7 @@ module fa (
         s = a ^ b ^ cin
         
         // Compute cout using a 3-input OR with 3 ANDs 
-        cout = ((a & b) | (b & cin) | (a && cin))
+        cout = ((a & b) | (b & cin) | (a & cin))
         
     }
     

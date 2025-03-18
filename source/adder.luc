@@ -36,7 +36,7 @@ module adder #(
         // Set to 1 when sign of inputs same but sign of output different. 
         // Case 1: Both inputs are positive, but the result is negative.
         // Case 2: Both inputs are negative, but the result is positive.
-        v = (a[SIZE-1] & xb[SIZE-1] & ~rca.s[SIZE-1] | (~a[SIZE-1]) & ~xb[SIZE-1] & rca.s[SIZE-1])
+        v = ((a[SIZE-1] & xb[SIZE-1] & ~rca.s[SIZE-1]) | ((~a[SIZE-1]) & ~xb[SIZE-1] & rca.s[SIZE-1]) )
         
         // Negative Flag
         // Simply checks the MSB. If it is 1 it is negative, if 0 it is positive.
