@@ -25,22 +25,33 @@ module alu_automatic_tester#(
     alu alu;
     
     // Test case structure
-    struct test_case {
-        a[32],
-        b[32],
-        alufn[6],
-        expected[32]
-    }
+    // Constants for ALU test cases
+    const NUM_TEST_CASES = 9;
     
-    // Hardcoded test cases 
-    const NUM_TEST_CASES = 5; // Can't seem to do $width(TEST_CASES) so this is a hacky workaround
-    const TEST_CASES = {
-        <test_case>(.a(32h00000000), .b(32h00000000), .alufn(6b000000), .expected(32h00000000)), // ADD
-        <test_case>(.a(32hFFFFFFFF), .b(32h00000001), .alufn(6b000000), .expected(32h00000000)),  // ADD overflow
-        <test_case>(.a(32h00000005), .b(32h00000003), .alufn(6b000001), .expected(32h00000002)), // SUB
-        <test_case>(.a(32h000000FF), .b(32h0000000F), .alufn(6b011000), .expected(32h0000000F)), // AND
-        <test_case>(.a(32h000000F0), .b(32h0000000F), .alufn(6b011110), .expected(32h000000FF))  // OR
+    // A values for test cases
+    const A = {
+        32h00000000, 32hFFFFFFFF, 32h00000005, 32h000000FF, 32h000000F0, 
+        32h000000FF, 32h00000011, 32h0000000A, 32h000000FF
     };
+    
+    // B values for test cases
+    const B = {
+        32h00000000, 32h00000001, 32h00000003, 32h0000000F, 32h0000000F, 
+        32h0000000F, 32h00000005, 32h00000000, 32h00000000
+    };
+    
+    // ALU function codes (ALUFN)
+    const ALUFN = {
+        6b000000, 6b000000, 6b000001, 6b011000, 6b011110, 
+        6b011000, 6b000100, 6b000101, 6b011011
+    };
+    
+    // Expected ALU output (including 35 bits: result[32] + Z, V, N flags)
+    const ALU_OUT = {
+        35h000000000, 35h000000000, 35h000000002, 35h00000000F, 35h0000000FF, 
+        35h7FFFFFFF0, 35h000000002, 35h7FFFFFFF6, 35h7FFFFFF00
+    };
+
     
     // Add error simulation input (using DIP switch 0[0] as error trigger)
     sig modified_alu_out[32]
@@ -88,9 +99,11 @@ module alu_automatic_tester#(
                 } 
             States.RUN: 
                 // Load test case from ROM
-                a_temp.d = TEST_CASES[test_id.q].a;
-                b_temp.d = TEST_CASES[test_id.q].b;
-                alufn.d = TEST_CASES[test_id.q].alufn;
+                // Load test case from ROM
+                a_temp.d = A[test_id.q];
+                b_temp.d = B[test_id.q];
+                alufn.d = ALUFN[test_id.q];
+
                 
                 // Stay in RUN state for test_delay
                 if (delay_counter.q == TEST_DELAY - 1) {
@@ -104,7 +117,7 @@ module alu_automatic_tester#(
                 // Modify ALU output LSB when DIP[0][1] is high (error simulation)
                 modified_alu_out = alu.out ^ c{31b0, io_dip[0][1]}  // Invert LSB
                 // Compare ALU output with expected value
-                if (modified_alu_out == TEST_CASES[test_id.q].expected) {
+                if (modified_alu_out == ALU_OUT[test_id.q]) {
                     io_led[1][7:0] = 8b11111111;  // Correct is on the right side
                 } else {
                     io_led[2][7:0] =  8b11111111;  // Incorrect is on the left sie
@@ -115,7 +128,7 @@ module alu_automatic_tester#(
                     delay_counter.d = delay_counter.q + 1;
                 } else {
                     // After delay completes, check result
-                    if (modified_alu_out == TEST_CASES[test_id.q].expected) {
+                    if (modified_alu_out == ALU_OUT[test_id.q]) {
                         // Correct: Proceed to next test
                         test_id.d = test_id.q + 1;
                         if (test_id.q + 1 < NUM_TEST_CASES) {
@@ -131,7 +144,7 @@ module alu_automatic_tester#(
                 }
 
                 // Check for button press to resume after error (any time after delay completes)
-                if (delay_counter.q == TEST_DELAY - 1 && modified_alu_out != TEST_CASES[test_id.q].expected) {
+                if (delay_counter.q == TEST_DELAY - 1 && modified_alu_out != ALU_OUT[test_id.q]) {
                     if (io_button_edge.out[1]) {  // Button pressed
                         test_id.d = test_id.q + 1;
                         if (test_id.q + 1 < NUM_TEST_CASES) {
