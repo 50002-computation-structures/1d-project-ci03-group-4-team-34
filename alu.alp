@@ -154,6 +154,30 @@
                     "type": "DiskFile",
                     "path": "source/alu_automatic_tester.luc"
                 }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/modulus.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/nand.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/neg.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/not.luc"
+                }
             }
         ],
         "constraintFiles": [

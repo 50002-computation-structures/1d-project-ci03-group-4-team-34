@@ -1,0 +1,9 @@
+module modulus (
+    input a[32],
+    input b[32],
+    output m[32]  // Modulus output
+) {
+    always {
+        m = a - (a / b) * b;  
+    }
+}
