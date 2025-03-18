@@ -9,8 +9,8 @@ module alu_automatic_tester#(
     output io_segment[8],
     output io_select[4]
 ) {
-     const SEVEN_SEG_DIV = $is_sim() ? 3 : 16
-    const TEST_DELAY = CLK_FREQ * 3; // 3 second delay
+    const SEVEN_SEG_DIV = $is_sim() ? 3 : 16
+    const TEST_DELAY = CLK_FREQ * 1; // 1 second delay
     .clk(clk) {
      
         edge_detector io_button_edge[5](#RISE(5x{{1}}), #FALL(5x{{0}}))
@@ -41,6 +41,9 @@ module alu_automatic_tester#(
         <test_case>(.a(32h000000FF), .b(32h0000000F), .alufn(6b011000), .expected(32h0000000F)), // AND
         <test_case>(.a(32h000000F0), .b(32h0000000F), .alufn(6b011110), .expected(32h000000FF))  // OR
     };
+    
+    // Add error simulation input (using DIP switch 0[0] as error trigger)
+    sig modified_alu_out[32]
     
     enum States{
         IDLE,
@@ -73,6 +76,8 @@ module alu_automatic_tester#(
         tester_state.d = tester_state.q
         delay_counter.d = delay_counter.q + 1;
         
+        modified_alu_out = alu.out;  // Default value
+        
         case (tester_state.q) {
             // Default state where it does nothing. Moves to load state when button is pressed.
             States.IDLE: 
@@ -96,8 +101,10 @@ module alu_automatic_tester#(
                 }
                 
             States.CHECK:
+                // Modify ALU output LSB when DIP[0][1] is high (error simulation)
+                modified_alu_out = alu.out ^ c{31b0, io_dip[0][1]}  // Invert LSB
                 // Compare ALU output with expected value
-                if (alu.out == TEST_CASES[test_id.q].expected) {
+                if (modified_alu_out == TEST_CASES[test_id.q].expected) {
                     io_led[1][7:0] = 8b11111111;  // Correct is on the right side
                 } else {
                     io_led[2][7:0] =  8b11111111;  // Incorrect is on the left sie
