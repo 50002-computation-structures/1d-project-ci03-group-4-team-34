@@ -4,6 +4,10 @@ module modulus (
     output m[32]  // Modulus output
 ) {
     always {
-        m = a - (a / b) * b;  
+        if (b==0){
+            m=0
+        } else {
+            m = a - (a / b) * b;  
+        }
     }
 }
