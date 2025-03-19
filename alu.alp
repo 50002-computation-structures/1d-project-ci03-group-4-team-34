@@ -164,19 +164,19 @@
             {
                 "file": {
                     "type": "DiskFile",
-                    "path": "source/nand.luc"
+                    "path": "source/nand_alu.luc"
                 }
             },
             {
                 "file": {
                     "type": "DiskFile",
-                    "path": "source/neg.luc"
+                    "path": "source/neg_alu.luc"
                 }
             },
             {
                 "file": {
                     "type": "DiskFile",
-                    "path": "source/not.luc"
+                    "path": "source/not_alu.luc"
                 }
             }
         ],

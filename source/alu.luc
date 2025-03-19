@@ -16,8 +16,8 @@ module alu (
     divider divider();
     modulus modulus();
     neg neg();
-    not not();
-    nand nand();
+    not_alc not_alc();
+    nand_alc nand_alc();
     
 
     always {
@@ -61,11 +61,11 @@ module alu (
         neg.a = a;
         
         // not logic
-        not.a = a;
+        not_alc.a = a;
         
         // nand logic
-        nand.a = a;
-        nand.b = b;
+        nand_alc.a = a;
+        nand_alc.b = b;
         
         // Explicit 6-bit ALUFN comparisons
         if (alufn == 6b000000) {          // ADD
@@ -85,9 +85,9 @@ module alu (
         } else if (alufn == 6b011110) {   // OR
             out = boolean.bool;
         } else if (alufn == 6b011011) {   // NOT
-            out = not.out;
+            out = not_alc.out;
         } else if (alufn == 6b011001) {   // NAND
-            out = nand.out;
+            out = nand_alc.out;
         } else if (alufn == 6b010110) {   // XOR
             out = boolean.bool;
         } else if (alufn == 6b011010) {   // LDR (A)

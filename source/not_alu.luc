@@ -1,4 +1,4 @@
-module not (
+module not_alc (
     input a[32],   // 32-bit input
     output out[32]   // 32-bit output
 ) {

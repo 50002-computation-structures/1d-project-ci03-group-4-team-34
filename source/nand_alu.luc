@@ -1,4 +1,4 @@
-module nand (
+module nand_alc (
     input a[32],
     input b[32], 
     output out[32] // a/b
