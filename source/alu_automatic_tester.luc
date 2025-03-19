@@ -47,14 +47,14 @@ module alu_automatic_tester#(
         32h80000000,  // Test14: SHL (0x80000000 << 1)
         32h80000000,  // Test15: SHR (0x80000000 >> 1)
         32h80000000,  // Test16: SRA (0x80000000 >> 1)
-        // Comparison operations: CMPEQ, CMPLT, CMPLE
-        32h00000005,  // Test17: CMPEQ (5 == 5)
-        32h00000005,  // Test18: CMPEQ (5 == 3)
-        32hFFFFFFFF,  // Test19: CMPLT (-1 < 0)
-        32h00000000,  // Test20: CMPLT (0 < -1)
-        32h00000003,  // Test21: CMPLE (3 <= 5)
-        32h00000005,  // Test22: CMPLE (5 <= 5)
-        32h00000005   // Test23: CMPLE (5 <= 3)
+        32h00000005,  // Test17: CMPEQ (5 ==5)
+        32h00000005,  // Test18: CMPEQ (5 ==3)
+        32h00000003,  // Test19: CMPLT (3 <5)
+        32h00000005,  // Test20: CMPLT (5 <3)
+        32h80000000,  // Test21: CMPLT (0x80000000 <1)
+        32h00000005,  // Test22: CMPLE (5 <=5)
+        32hFFFFFFFF,  // Test23: CMPLE (0xFFFFFFFF <=0)
+        32h7FFFFFFF   // Test24: CMPLE (0x7FFFFFFF <=0x80000000)
     };
     
     // B values for test cases (32-bit hexadecimal)
@@ -80,14 +80,15 @@ module alu_automatic_tester#(
         32h00000001,  // Test14: B for SHL (1)
         32h00000001,  // Test15: B for SHR (1)
         32h00000001,  // Test16: B for SRA (1)
-        // Comparison operations: CMPEQ, CMPLT, CMPLE
-        32h00000005,  // Test17: B for CMPEQ (5)
-        32h00000003,  // Test18: B for CMPEQ (3)
-        32h00000000,  // Test19: B for CMPLT (0)
-        32hFFFFFFFF,  // Test20: B for CMPLT (-1)
-        32h00000005,  // Test21: B for CMPLE (5)
-        32h00000005,  // Test22: B for CMPLE (5)
-        32h00000003   // Test23: B for CMPLE (3)
+        32h00000005,  // Test17: B=5
+        32h00000003,  // Test18: B=3
+        32h00000005,  // Test19: B=5
+        32h00000003,  // Test20: B=3
+        32h00000001,  // Test21: B=1
+        32h00000005,  // Test22: B=5
+        32h00000000,  // Test23: B=0
+        32h80000000   // Test24: B=0x80000000
+
     };
     
     // ALU function codes (6-bit binary)
@@ -100,8 +101,15 @@ module alu_automatic_tester#(
         6b011010,
         // Shift operations: SHL (6b100000), SHR (6b100001), SRA (6b100011)
         6b100000, 6b100000, 6b100001, 6b100011,
-        // Comparison ops: CMPEQ (6b110011), CMPLT (6b110101), CMPLE (6b110111)
-        6b110011, 6b110011, 6b110101, 6b110101, 6b110111, 6b110111, 6b110111
+        // Comparison operators
+        6b110011,  // Test17: CMPEQ
+        6b110011,  // Test18: CMPEQ
+        6b110101,  // Test19: CMPLT
+        6b110101,  // Test20: CMPLT
+        6b110101,  // Test21: CMPLT
+        6b110111,  // Test22: CMPLE
+        6b110111,  // Test23: CMPLE
+        6b110111   // Test24: CMPLE
     };
     
     // Expected ALU outputs (32-bit hexadecimal)
@@ -117,14 +125,17 @@ module alu_automatic_tester#(
         32h12345678,                            // LDR Test12
         // Shift results
         32h0000000A, 32h00000000,               // SHL Tests13-14
-        32h40000000, 32hC0000000,               // SHR/SRA Tests15-16
-        // Comparison results (0xFFFFFFFF = true, 0x00000000 = false)
-        32hFFFFFFFF, 32h00000000,               // CMPEQ Tests17-18
-        32hFFFFFFFF, 32h00000000,               // CMPLT Tests19-20
-        32hFFFFFFFF, 32hFFFFFFFF, 32h00000000   // CMPLE Tests21-23
+        32h40000000, 32hC0000000,              // SHR/SRA Tests15-16
+        32h00000001,  // Test17: CMPEQ true
+        32h00000000,  // Test18: CMPEQ false
+        32h00000001,  // Test19: CMPLT true
+        32h00000000,  // Test20: CMPLT false
+        32h00000001,  // Test21: CMPLT true
+        32h00000001,  // Test22: CMPLE true
+        32h00000001,  // Test23: CMPLE true
+        32h00000000   // Test24: CMPLE false
     };
     
-
     
     // Add error simulation input (using DIP switch 0[0] as error trigger)
     sig modified_alu_out[32]

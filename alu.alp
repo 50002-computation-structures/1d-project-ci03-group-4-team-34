@@ -160,24 +160,6 @@
                     "type": "DiskFile",
                     "path": "source/modulus.luc"
                 }
-            },
-            {
-                "file": {
-                    "type": "DiskFile",
-                    "path": "source/nand.luc"
-                }
-            },
-            {
-                "file": {
-                    "type": "DiskFile",
-                    "path": "source/neg.luc"
-                }
-            },
-            {
-                "file": {
-                    "type": "DiskFile",
-                    "path": "source/not.luc"
-                }
             }
         ],
         "constraintFiles": [

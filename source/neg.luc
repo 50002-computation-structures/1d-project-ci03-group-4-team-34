@@ -1,9 +1,0 @@
-module neg (
-    input a[32],   // 32-bit input
-    output out[32]   // 32-bit output
-) {
-    always {  
-            out = -a;  // Two’s Complement (-a)
-        
-    }
-}
