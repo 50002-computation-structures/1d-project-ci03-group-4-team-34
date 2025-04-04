@@ -160,6 +160,12 @@
                     "type": "DiskFile",
                     "path": "source/modulus.luc"
                 }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/fsm.luc"
+                }
             }
         ],
         "constraintFiles": [

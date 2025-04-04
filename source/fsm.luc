@@ -1,0 +1,89 @@
+module fsm #(
+    CLK_FREQ ~ 1000 : CLK_FREQ > 0) 
+(
+    input clk,                  // 100MHz clock
+    input rst,                  // active-high reset
+    output alu_a[32],          // ALU input A
+    output alu_b[32],          // ALU input B (for constants)
+    output alu_alufn[6],       // ALU function code
+    input alu_out[32],         // ALU result from datapath (for Z/V/N flags)
+    output we,                 // write enable
+    output wdsel[2],           // write data select
+    output wa[4],              // write address
+    output asel[2],            // ASEL select
+    output bsel[2],            // BSEL select
+    output ra1[4],             // Read address 1
+    output ra2[4],             // Read address 2
+    output current_state[5]    // optional state output for debug or LED
+) {
+    enum State{
+        IDLE,
+        RESET_LIVES,
+        RESET_SCORES,
+        GAME_START,
+        DISPLAY_LIVES,
+        DISPLAY_SCORE,
+        RNG,
+        SHOW_ITEM,
+        TIME_RESET,
+        DECRE_TIME,
+        CHECK_TIME,
+        CHECK,
+        CORRECT,
+        SCORE,
+        WRONG,
+        CHECK_BOMB,
+        LIFE_COUNT,
+        CHECK_LIFE_COUNT,
+        COMPARE_SCORE,
+        STORE_SCORE,
+        ENDGAME,
+        ENDGAME_HIGHSCORE
+    }
+    dff state(#INIT(State.IDLE), .clk(clk), .rst(rst))
+    sig z // zero flag
+    
+    // default control signals
+    always{
+        alu_a = 0
+        alu_b = 0
+        alu_alufn = 6b000000
+        we = 0
+        wdsel = 2b00
+        wa = 0
+        asel = 2b00
+        bsel = 2b00
+        ra1 = 0
+        ra2 = 0
+        
+        current_state = state.q
+    }
+    
+    always{
+        state.d = state.q
+        case(state.q){
+            State.IDLE:
+                alu_alufn = 6b110011 // CMPEQ
+                asel = 2b00 // from reg
+                bsel = 2b10 // constant 2
+                ra1 = 4h1   // Start button reg
+                z = (alu_out == 0)
+                
+                if (!z) {
+                    state.d = State.IDLE // not equal, stay in IDLE
+                } else {
+                    state.d = State.GAME_START // equal, go to start
+                }    
+            State.RESET_LIVES:
+                alu_alufn = 6b000000
+                asel = 2b00
+                bsel = 2b01
+                wa = 4h7
+                we = 1
+                wdsel = 2b00
+                ra1 = 4h9
+            
+        }
+    }
+    
+}
