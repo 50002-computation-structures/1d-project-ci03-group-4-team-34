@@ -6,6 +6,10 @@ module divider (
   ) {
 
   always {
-    d = a/b;
+        if (b==0) {
+            d = 0;
+        } else {
+            d = a/b;
+        }
   }
 }
