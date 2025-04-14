@@ -43,8 +43,10 @@ module fsm #(
     dff state(#INIT(State.IDLE), .clk(clk), .rst(rst))
     sig z // zero flag
     
-    // default control signals
+
+    
     always{
+        // default control signals
         alu_a = 0
         alu_b = 0
         alu_alufn = 6b000000
@@ -55,11 +57,9 @@ module fsm #(
         bsel = 2b00
         ra1 = 0
         ra2 = 0
+        z=0
         
         current_state = state.q
-    }
-    
-    always{
         state.d = state.q
         case(state.q){
             State.IDLE:
@@ -70,10 +70,11 @@ module fsm #(
                 z = (alu_out == 0)
                 
                 if (!z) {
-                    state.d = State.IDLE // not equal, stay in IDLE
+                    state.d = State.IDLE // not equal, stay in IDLE //false
                 } else {
-                    state.d = State.GAME_START // equal, go to start
-                }    
+                    state.d = State.GAME_START // equal, go to start //false
+                } 
+               
             State.RESET_LIVES:
                 alu_alufn = 6b000000
                 asel = 2b00

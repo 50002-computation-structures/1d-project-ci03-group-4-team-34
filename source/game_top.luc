@@ -1,0 +1,37 @@
+module game_top (
+  input clk,
+  input rst,
+  input io_button[5],
+  input io_dip[3][8],
+  output io_led[3][8],
+  output io_segment[8],
+  output io_select[4]
+) {
+  sig alu_a[32], alu_b[32], alu_out[32], alu_alufn[6]
+  sig we, wdsel[2], wa[4], asel[2], bsel[2], ra1[4], ra2[4], current_state[5]
+
+  // Instantiate your FSM
+  fsm controller(
+    .clk(clk), .rst(rst),
+    .alu_a(alu_a), .alu_b(alu_b), .alu_alufn(alu_alufn),
+    .alu_out(alu_out),
+    .we(we), .wdsel(wdsel), .wa(wa),
+    .asel(asel), .bsel(bsel),
+    .ra1(ra1), .ra2(ra2),
+    .current_state(current_state)
+  )
+
+  // Instantiate your ALU
+  alu alu_unit(.a(alu_a), .b(alu_b), .alufn(alu_alufn), .out(alu_out))
+
+  // TODO: Instantiate register file and connect it
+
+  // Debug: Show FSM state
+  always {
+    io_led[0] = current_state[3:0] ++ 4b0000
+    io_led[1] = 8h00
+    io_led[2] = 8h00
+    io_segment = 8h00
+    io_select = 4b1111
+  }
+}
