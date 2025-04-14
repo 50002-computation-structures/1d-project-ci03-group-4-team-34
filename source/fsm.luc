@@ -43,20 +43,10 @@ module fsm #(
     dff state(#INIT(State.IDLE), .clk(clk), .rst(rst))
     sig z // zero flag
     
-
+    
     
     always{
         // default control signals
-        alu_a = 0
-        alu_b = 0
-        alu_alufn = 6b000000
-        we = 0
-        wdsel = 2b00
-        wa = 0
-        asel = 2b00
-        bsel = 2b00
-        ra1 = 0
-        ra2 = 0
         z=0
         
         current_state = state.q
@@ -67,14 +57,14 @@ module fsm #(
                 asel = 2b00 // from reg
                 bsel = 2b10 // constant 2
                 ra1 = 4h1   // Start button reg
-                z = (alu_out == 0)
+                z = alu_out
                 
-                if (!z) {
+                if (z == 0) {
                     state.d = State.IDLE // not equal, stay in IDLE //false
                 } else {
-                    state.d = State.GAME_START // equal, go to start //false
+                    state.d = State.RESET_LIVES // equal, go to start //false
                 } 
-               
+            
             State.RESET_LIVES:
                 alu_alufn = 6b000000
                 asel = 2b00
@@ -83,6 +73,163 @@ module fsm #(
                 we = 1
                 wdsel = 2b00
                 ra1 = 4h9
+                state.d = State.RESET_SCORES
+            
+            State.RNG:
+                wa = 4h5
+                we = 1
+                wdsel = 2b11
+                ra1 = 4h5
+                state.d = State.SHOW_ITEM
+            
+            State.SHOW_ITEM:
+                alu_alufn = 6b000000
+                asel = 2b00
+                bsel = 2b01
+                wa = 4h2
+                we = 1
+                wdsel = 2b00
+                ra1 = 4h5
+                state.d = State.TIME_RESET
+            
+            State.CHECK:
+                alu_alufn = 6b110011
+                asel = button_sig   //NOTE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                bsel = 2b00
+                ra2 = 4h2
+                z = alu_out
+                
+                if (z == 0){
+                    state.d = State.WRONG
+                } else{
+                    state.d = State.CORRECT
+                }
+            
+            State.CORRECT:
+                state.d = State.SCORE
+            
+            State.WRONG:
+                state.q = State.CHECK_BOMB
+            
+            State.TIME_RESET:
+                alu_alufn = 6b000000
+                asel = 2b01
+                bsel = 2b10
+                wa = 4h4
+                we = 1
+                wdsel = 2b00
+            
+            State.DECRE_TIME:
+                alu_alufn = 6b000001
+                asel = 2b00
+                bsel = 2b10
+                wa = 4h4
+                we = 1
+                wdsel = 2b00
+                ra1 = 4h4
+            
+            State.CHECK_TIME:
+                alu_alufn = 6b110011 //CMPEQ
+                asel = 2b00
+                bsel = 2b01
+                wdsel = 2b00
+                ra1 = 4h4
+                z = alu_out   //NOTE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                
+                if (z==0) {
+                    state.d = State.CHECK // not equal, stay in IDLE //false
+                } else {
+                    state.d = State.LIFE_COUNT  // equal, go to start //false
+                }
+            
+            State.LIFE_COUNT:
+                alu_alufn = 6b000001
+                asel = 2b00
+                bsel = 2b10
+                wa = 4h7
+                we = 1
+                wdsel = 2b00
+                ra1 = 4h7
+            
+            
+            State.CHECK_LIFE_COUNT:
+                alu_alufn = 6b110011
+                asel = 2b00
+                bsel = 2b01
+                ra1 = 4h7
+                z = alu_out
+                if(z!=0){
+                    state.d =  STATE.COMPARE_SCORE
+                }
+                else{
+                    state.d = STATE.GAME_START
+                }
+            
+            State.COMPARE_SCORE:
+                alu_alufn = 6b110101
+                asel = 2b00
+                bsel = 2b00
+                wdsel = 2b00
+                ra1 = 4h7
+                ra2 = 4h8
+            
+            State.STORE_SCORE:
+                alu_alufn = 6b000000
+                asel = 2b00
+                bsel = 2b01
+                wa = 4h6
+                we=1
+                wdsel = 2b00
+                ra1 = 4h8
+            
+            State.RESET_LIVES:
+                alu_alufn = 6b000000
+                asel = 2b00
+                bsel = 2b01
+                wa = 4h7
+                we = 1
+                wdsel = 2b00
+                ra1 = 4h9
+            
+            State.RESET_SCORE:
+                alu_alufn = 6b000010
+                asel = 2b00
+                bsel = 2b01
+                wa = 4h8
+                we = 1
+                wdsel = 2b00
+                ra1 = 4h8
+            
+            State.GAME_START:
+                state.d = State.DISPLAY_LIVES
+            
+            
+            State.DISPLAY_LIVES:
+                alu_alufn = 6b011010
+                asel = 2b00
+                we = 0
+                ra1 = 4h7
+            
+            State.DISPLAY_SCORES:
+                alu_alufn = 6b011010
+                asel = 2b00
+                we = 0
+                ra1 = 4h8
+            
+            State.ENDGAME:
+                alu_alufn = 6b000010
+                asel = 2b00
+                bsel = 2b01
+                wa = 4h7
+                we = 1
+                wdsel = 2b00
+                ra1 = 4h7
+
+
+            
+            
+            
+            
             
         }
     }
