@@ -58,6 +58,7 @@ module fsm #(
                 alu_alufn = 6b110011 // CMPEQ
                 asel = 2b00 // from reg
                 bsel = 2b10 // constant 2
+                alu_b = 32d2
                 ra1 = 4h1   // Start button reg
                 z = alu_out
                 
@@ -75,6 +76,7 @@ module fsm #(
                 we = 1
                 wdsel = 2b00
                 ra1 = 4h9
+                alu_b = 32d1
                 state.d = State.RESET_SCORES
             
             State.RNG:
@@ -120,6 +122,8 @@ module fsm #(
                 wa = 4h4
                 we = 1
                 wdsel = 2b00
+                alu_a = 32d0
+                alu_b = 32d2
                 state.d = State.DECRE_TIME
             
             State.DECRE_TIME:
@@ -130,6 +134,7 @@ module fsm #(
                 we = 1
                 wdsel = 2b00
                 ra1 = 4h4
+                alu_b = 32d2
                 state.d = State.CHECK_TIME
             
             State.CHECK_TIME:
@@ -138,6 +143,7 @@ module fsm #(
                 bsel = 2b01
                 wdsel = 2b00
                 ra1 = 4h4
+                alu_b = 32d1
                 z = alu_out   //NOTE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 
                 if (z==0) {
@@ -154,7 +160,8 @@ module fsm #(
                 we = 1
                 wdsel = 2b00
                 ra1 = 4h7
-            state.d = 0
+                alu_b = 32d2
+                state.d = State.CHECK_LIFE_COUNT
             
             
             State.CHECK_LIFE_COUNT:
@@ -162,6 +169,7 @@ module fsm #(
                 asel = 2b00
                 bsel = 2b01
                 ra1 = 4h7
+                alu_b = 32d1
                 z = alu_out
                 if(z!=0){
                     state.d = State.COMPARE_SCORE
@@ -177,6 +185,13 @@ module fsm #(
                 wdsel = 2b00
                 ra1 = 4h7
                 ra2 = 4h8
+                z = alu_out
+                 if(z!=0){
+                        state.d = State.STORE_SCORE
+                    }
+                    else{
+                        state.d = State.ENDGAME
+                    }
             
             State.STORE_SCORE:
                 alu_alufn = 6b000000
@@ -186,6 +201,7 @@ module fsm #(
                 we=1
                 wdsel = 2b00
                 ra1 = 4h8
+                state.d = State.ENDGAME_HIGHSCORE
             
             
             State.RESET_SCORES:
@@ -196,6 +212,8 @@ module fsm #(
                 we = 1
                 wdsel = 2b00
                 ra1 = 4h8
+                alu_b = 32d1
+                state.d = State.GAME_START
             
             State.GAME_START:
                 state.d = State.DISPLAY_LIVES
@@ -206,12 +224,14 @@ module fsm #(
                 asel = 2b00
                 we = 0
                 ra1 = 4h7
+                state.d = State.DISPLAY_SCORE
             
             State.DISPLAY_SCORE:
                 alu_alufn = 6b011010
                 asel = 2b00
                 we = 0
                 ra1 = 4h8
+                state.d = State.RNG
             
             State.ENDGAME:
                 alu_alufn = 6b000010
@@ -220,14 +240,40 @@ module fsm #(
                 wa = 4h7
                 we = 1
                 wdsel = 2b00
+                alu_b = 32d1
                 ra1 = 4h7
+                state.d = State.IDLE
+            
+            
+            State.SCORE:
+                alu_alufn = 6b000000    // ADD
+                asel = 2b00
+                bsel = 2b01
+                wa = 4h8
+                we = 1
+                wdsel = 2b00
+                ra1 = 4h8
+                alu_b = 32d1
+                state.d = State.GAME_START
+            
+            State.CHECK_BOMB:
+                alu_alufn = 6b110011    // CMPEQ
+                asel = 2b00
+                bsel = 2b11             // Assuming 2b11 = constant 3?
+                ra1 = 4h2
+                alu_b = 32d2            // "bomb" identifier
+                z = alu_out
+                if (z == 0) {
+                    state.d = State.LIFE_COUNT
+                } else {
+                    state.d = State.ENDGAME
+                }
+            
+            State.ENDGAME_HIGHSCORE:
+                state.d = State.IDLE
 
-
             
-            
-            
-            
-            
+ 
         }
     }
     
