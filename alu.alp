@@ -208,6 +208,12 @@
                     "type": "DiskFile",
                     "path": "source/game_top.luc"
                 }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/button_press.luc"
+                }
             }
         ],
         "constraintFiles": [

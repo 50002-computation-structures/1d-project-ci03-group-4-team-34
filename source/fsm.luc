@@ -48,6 +48,8 @@ module fsm #(
     always{
         // default control signals
         z=0
+        alu_a = 0;
+        alu_b = 0;
         
         current_state = state.q
         state.d = state.q
@@ -94,7 +96,7 @@ module fsm #(
             
             State.CHECK:
                 alu_alufn = 6b110011
-                asel = button_sig   //NOTE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                asel = 0  //NOTE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 bsel = 2b00
                 ra2 = 4h2
                 z = alu_out
@@ -109,7 +111,7 @@ module fsm #(
                 state.d = State.SCORE
             
             State.WRONG:
-                state.q = State.CHECK_BOMB
+                state.d = State.CHECK_BOMB
             
             State.TIME_RESET:
                 alu_alufn = 6b000000
@@ -118,6 +120,7 @@ module fsm #(
                 wa = 4h4
                 we = 1
                 wdsel = 2b00
+                state.d = State.DECRE_TIME
             
             State.DECRE_TIME:
                 alu_alufn = 6b000001
@@ -127,6 +130,7 @@ module fsm #(
                 we = 1
                 wdsel = 2b00
                 ra1 = 4h4
+                state.d = State.CHECK_TIME
             
             State.CHECK_TIME:
                 alu_alufn = 6b110011 //CMPEQ
@@ -137,9 +141,9 @@ module fsm #(
                 z = alu_out   //NOTE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 
                 if (z==0) {
-                    state.d = State.CHECK // not equal, stay in IDLE //false
+                    state.d = State.CHECK 
                 } else {
-                    state.d = State.LIFE_COUNT  // equal, go to start //false
+                    state.d = State.LIFE_COUNT  
                 }
             
             State.LIFE_COUNT:
@@ -150,6 +154,7 @@ module fsm #(
                 we = 1
                 wdsel = 2b00
                 ra1 = 4h7
+            state.d = 0
             
             
             State.CHECK_LIFE_COUNT:
@@ -159,10 +164,10 @@ module fsm #(
                 ra1 = 4h7
                 z = alu_out
                 if(z!=0){
-                    state.d =  STATE.COMPARE_SCORE
+                    state.d = State.COMPARE_SCORE
                 }
                 else{
-                    state.d = STATE.GAME_START
+                    state.d = State.GAME_START
                 }
             
             State.COMPARE_SCORE:
@@ -182,16 +187,8 @@ module fsm #(
                 wdsel = 2b00
                 ra1 = 4h8
             
-            State.RESET_LIVES:
-                alu_alufn = 6b000000
-                asel = 2b00
-                bsel = 2b01
-                wa = 4h7
-                we = 1
-                wdsel = 2b00
-                ra1 = 4h9
             
-            State.RESET_SCORE:
+            State.RESET_SCORES:
                 alu_alufn = 6b000010
                 asel = 2b00
                 bsel = 2b01
@@ -210,7 +207,7 @@ module fsm #(
                 we = 0
                 ra1 = 4h7
             
-            State.DISPLAY_SCORES:
+            State.DISPLAY_SCORE:
                 alu_alufn = 6b011010
                 asel = 2b00
                 we = 0
