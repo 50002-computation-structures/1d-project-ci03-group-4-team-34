@@ -1,0 +1,116 @@
+module max7219_driver(
+  input clk,
+  input rst,
+  input new,
+  input segment_values[8][8],
+  output done,
+  output max7219_load,
+  output max7219_data,
+  output max7219_clock,
+  output debug_state[8],
+  output debug_counter[8],
+  output debug_writer[6],
+  output debug_data[8],
+  output debug_address[8],
+  output debug_driver_state[4],
+  output debug_digit_index[8],
+  output debug_segment_current[8],
+  output debug_segment_original[8],
+  output debug_digit_index_original[8]
+) {
+  const CHAIN = 1;
+  const SPEED = 4;
+
+  sig max_addr[8];
+  sig max_data[8];
+  sig current_digit_address[8];
+  sig current_segment_values[8];
+
+  sig digit_index[3];
+  sig digit_address[8][8];
+
+  dff state_reg[4](.clk(clk), .rst(rst), #INIT(0));
+  dff digit_index_reg[3](.clk(clk), .rst(rst), #INIT(0));
+
+  max7219 max7219_inst(.clk(clk), .rst(rst), .addr_in(max_addr), .din(max_data), .start(0), .cs(max7219_load), .dout(max7219_data), .sck(max7219_clock),
+    .busy, .debug_state(debug_state), .debug_counter(debug_counter), .debug_writer(debug_writer), .debug_data(debug_data), .debug_address(debug_address));
+
+  always {
+    digit_address[0] = 8b00010000;
+    digit_address[1] = 8b01000000;
+    digit_address[2] = 8b11000000;
+    digit_address[3] = 8b00100000;
+    digit_address[4] = 8b10100000;
+    digit_address[5] = 8b01100000;
+    digit_address[6] = 8b11100000;
+    digit_address[7] = 8b00010001;
+
+    max_addr = 0;
+    max_data = 0;
+    max7219_inst.start = 0;
+    debug_driver_state = 0;
+
+    current_digit_address = digit_address[digit_index_reg.q];
+    current_segment_values = segment_values[digit_index_reg.q];
+
+    debug_digit_index = current_digit_address;
+    debug_digit_index_original = digit_index_reg.q + 1;
+    debug_segment_current = current_segment_values;
+    debug_segment_original = segment_values[digit_index_reg.q];
+    done = 0;
+
+    case (state_reg.q) {
+      0:
+        debug_driver_state = 0;
+        state_reg.d = 1;
+      1:
+        debug_driver_state = 1;
+        max7219_inst.start = 1;
+        max_addr = 8b00110000;
+        max_data = 8b00000000;
+        if (!max7219_inst.busy) state_reg.d = 2;
+      2:
+        debug_driver_state = 5;
+        max7219_inst.start = 1;
+        max_addr = 8b10010000;
+        max_data = 8b00000000;
+        if (!max7219_inst.busy) state_reg.d = 3;
+      3:
+        debug_driver_state = 6;
+        max7219_inst.start = 1;
+        max_addr = 8b11010000;
+        max_data = 8b11100000;
+        if (!max7219_inst.busy) state_reg.d = 4;
+      4:
+        debug_driver_state = 7;
+        max7219_inst.start = 1;
+        max_addr = current_digit_address;
+        max_data = current_segment_values;
+        if (!max7219_inst.busy) {
+          digit_index_reg.d = digit_index_reg.q + 1;
+          if (&digit_index_reg.q) state_reg.d = 5;
+        }
+      5:
+        debug_driver_state = 2;
+        max7219_inst.start = 1;
+        max_addr = 8b00110000;
+        max_data = 8b10000000;
+        if (!max7219_inst.busy) state_reg.d = 6;
+      6:
+        debug_driver_state = 15;
+        max_addr = 0;
+        max_data = 0;
+        done = 1;
+        if (new) {
+          digit_index_reg.d = 0;
+          state_reg.d = 7;
+        }
+      7:
+        debug_driver_state = 9;
+        max7219_inst.start = 1;
+        max_addr = 8b00110000;
+        max_data = 8b00000000;
+        if (!max7219_inst.busy) state_reg.d = 4;
+    }
+  }
+}
