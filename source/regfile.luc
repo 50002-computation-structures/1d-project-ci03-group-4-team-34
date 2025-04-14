@@ -1,0 +1,40 @@
+module register_file (
+  input clk,
+  input rst,
+  input we,
+  input wa[4],
+  input wd[32],
+  input ra1[4],
+  input ra2[4],
+  output rd1[32],
+  output rd2[32]
+) {
+  dff regs[9][32](.clk(clk), .rst(rst));
+
+  sig rd1[32];
+  sig rd2[32];
+
+  always {
+    // Default values
+    regs[0].d = regs[0].q;
+    regs[1].d = regs[1].q;
+    regs[2].d = regs[2].q;
+    regs[3].d = regs[3].q;
+    regs[4].d = regs[4].q;
+    regs[5].d = regs[5].q;
+    regs[6].d = regs[6].q;
+    regs[7].d = regs[7].q;
+    regs[8].d = regs[8].q;
+    regs[9].d = 32d3;
+
+    // Write logic
+    if (we && wa < 16) {
+      regs[wa].d = wd;
+    }
+
+    // Read logic
+    rd1 = regs[ra1].q;
+    rd2 = regs[ra2].q;
+   
+  }
+}

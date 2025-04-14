@@ -172,6 +172,24 @@
                     "type": "DiskFile",
                     "path": "source/game_top.luc"
                 }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/regfile.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/asel_bsel_mux.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/wdsel_mux.luc"
+                }
             }
         ],
         "constraintFiles": [

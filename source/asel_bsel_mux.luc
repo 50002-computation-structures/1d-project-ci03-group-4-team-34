@@ -1,0 +1,49 @@
+module asel_bsel_mux (
+    input clk,
+    input rd1[32],
+    input rd2[32],
+    input asel_sel[2],
+    input bsel_sel[2],
+    output a_out[32],
+    output b_out[32]
+) {
+    // Define constants
+    sig zero[32]
+    sig one[32]
+    sig two[32]
+    
+    sig a_sel_out[32]
+    sig b_sel_out[32]
+    
+    always {
+        zero = 0
+        one = 1
+        two = 2
+        
+        // ASEL MUX logic using decimal comparisons
+        if (asel_sel == 2b00) {
+            a_sel_out = rd1
+        } else if (asel_sel == 2b01) {
+            a_sel_out = zero
+        } else if (asel_sel == 2b10) {
+            a_sel_out = one
+        } else { // 2b11
+            a_sel_out = two
+        }
+        
+        
+        // BSEL MUX logic
+        if (bsel_sel == 2b00) {
+            b_sel_out = rd2
+        } else if (bsel_sel == 2b01) {
+            b_sel_out = zero
+        } else if (bsel_sel == 2b10) {
+            b_sel_out = one
+        } else { // 2b11
+            b_sel_out = two
+        }
+        
+        a_out = a_sel_out
+        b_out = b_sel_out
+    }
+}

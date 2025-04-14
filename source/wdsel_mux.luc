@@ -1,0 +1,24 @@
+module wdsel_mux (
+  input clk,
+  input wdsel[2],       // 2-bit control signal
+  input alu_result[32], // From ALU output
+  output wd_out[32]     // Value to write into REGFILE
+) {
+  sig rng_const[32];    // Constant 0x5
+  sig wd_result[32];    // Output buffer
+
+  always {
+    rng_const = 5;
+
+    if (wdsel == 2b00) {
+      wd_result = alu_result;
+    } else if (wdsel == 2b11) {
+      wd_result = rng_const;
+    } else {
+      // Default case — you can change this if needed
+      wd_result = 0;
+    }
+
+    wd_out = wd_result;
+  }
+}
