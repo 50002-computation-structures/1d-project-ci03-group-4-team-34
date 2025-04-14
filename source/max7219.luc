@@ -1,6 +1,8 @@
+
 module max7219 #(
   CHAIN = 1 : CHAIN > 0,
   SPEED = 4 : SPEED >= 4
+    
   ) 
 (
     input clk,  // clock
@@ -87,7 +89,7 @@ module max7219 #(
             address_write_pointer.d = address_write_pointer.q + 1; // write the next address bit   
         }
         
-        if (&address_write_pointer.q[2:0] & slowclock_edge.out){ // if the lower 3 bits of write_pointer is 3b111
+        if (c{&address_write_pointer.q[2],&address_write_pointer.q[1],&address_write_pointer.q[0]} & slowclock_edge.out){ // if the lower 3 bits of write_pointer is 3b111
           state.d = State.TRANSFER_DATA;
         }
         
@@ -99,7 +101,7 @@ module max7219 #(
             data_write_pointer.d = data_write_pointer.q + 1; // write the next data bit
         }
         
-        if (&data_write_pointer.q[2:0] & slowclock_edge.out){ // if the lower 3 bits of write_pointer is 3b111
+        if (c{&data_write_pointer.q[2],&data_write_pointer.q[1],&data_write_pointer.q[0]} & slowclock_edge.out){ // if the lower 3 bits of write_pointer is 3b111
           
           // check if we have written to all matrices in the chain 
           if (CHAIN > 1 & ~&chain.q){

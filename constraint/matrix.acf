@@ -1,0 +1,8 @@
+PINOUT(V1), STANDARD(LVCMOS33) { // standard 3.3V IO standard
+    // add pin constraints here
+    // pin SIGNAL PORT OPTIONAL_ATTRIBUTES
+        // actual output
+    pin io_seg[0] C48
+    pin io_seg[1] C2
+    pin io_seg[2] C3
+}

@@ -192,6 +192,12 @@
                     "type": "Component",
                     "path": "Constraints/alchitry.acf"
                 }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "constraint/matrix.acf"
+                }
             }
         ],
         "ipCores": []
