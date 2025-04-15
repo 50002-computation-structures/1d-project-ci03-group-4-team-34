@@ -22,13 +22,46 @@ module alchitry_top (
     
     const CLK_FREQ = $is_sim() ? 1000 : 10000000 // put 1000 for sim, 10000000 otherwise in hardware
     
-    
     // Mode selection signal
     sig use_manual  // Determines which tester to use
     
+    sig io_led_mux
+    sig io_segment_mux
+    sig io_select_mux
+    sig mux_alu_a[32]
+    sig mux_alu_b[32]
+    
+    sig rd1[32]
+    sig rd2[32]
+    
+    asel_bsel_mux mux_inst(
+        .clk(clk),
+        // Suppose you have signals like rd1, rd2 for register file outputs:
+        .rd1(rd1),
+        .rd2(rd2),
+        .asel_sel(asel), // from fsm
+        .bsel_sel(bsel), // from fsm
+        .alu_a(mux_alu_a),
+        .alu_b(mux_alu_b)
+    )
+    
+    fsm fsm_inst(
+        .clk(clk),
+        .rst(rst),
+        .alu_a(mux_alu_a),
+        .alu_b(mux_alu_b),
+        .alu_out(alu_out),
+        // other fsm signals ...
+        .asel(asel),
+        .bsel(bsel),
+        // etc.
+        
+    
     alu_manual_tester alu_manual(.clk(clk), .rst(rst), .io_button(io_button), .io_dip(io_dip), #CLK_FREQ(CLK_FREQ)) 
     game_top game(.clk(clk), .rst(rst), .io_button(io_button), .io_dip(io_dip), 
-        .io_led(io_led), .io_segment(io_segment), .io_select(io_select))
+        .io_led(io_led_mux), .io_segment(io_segment), .io_select(io_select))
+    
+    
     
     always {
         reset_cond.in = ~rst_n  // input raw inverted reset signal
@@ -42,7 +75,7 @@ module alchitry_top (
         use_manual = io_dip[0][0]
         
         // Mux outputs based on mode selection
-        io_segment = use_manual ? alu_manual.io_segment : game.io_segment
+        io_segment = use_manual ? alu_manual.io_segment : io_segment_mux
         io_select = use_manual ? alu_manual.io_select : game.io_select
         io_led = use_manual ? alu_manual.io_led : game.io_led
         
