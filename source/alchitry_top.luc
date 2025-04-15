@@ -22,6 +22,7 @@ module alchitry_top (
     
     const CLK_FREQ = $is_sim() ? 1000 : 10000000 // put 1000 for sim, 10000000 otherwise in hardware
     
+    
     // Mode selection signal
     sig use_manual  // Determines which tester to use
     

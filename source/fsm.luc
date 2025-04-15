@@ -3,8 +3,8 @@ module fsm #(
 (
     input clk,                  // 100MHz clock
     input rst,                  // active-high reset
-    output alu_a[32],          // ALU input A
-    output alu_b[32],          // ALU input B (for constants)
+    input alu_a[32],          // ALU input A   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    input alu_b[32],          // ALU input B (for constants)  !!!!!!!!!!!!!!!!!!!!!!!!
     output alu_alufn[6],       // ALU function code
     input alu_out[32],         // ALU result from datapath (for Z/V/N flags)
     output we,                 // write enable
@@ -40,16 +40,18 @@ module fsm #(
         ENDGAME,
         ENDGAME_HIGHSCORE
     }
-    dff state(#INIT(State.IDLE), .clk(clk), .rst(rst))
+    dff state[5](#INIT(State.IDLE), .clk(clk), .rst(rst))
+    
     sig z // zero flag
+    
+    // Instantiate the ASEL/BSEL multiplexer
     
     
     
     always{
         // default control signals
         z=0
-        alu_a = 0;
-        alu_b = 0;
+        
         
         current_state = state.q
         state.d = state.q
@@ -97,11 +99,11 @@ module fsm #(
                 state.d = State.TIME_RESET
             
             State.CHECK:
-                alu_alufn = 6b110011
+                alu_alufn = 6b110011 //CMPEQ
                 asel = 0  //NOTE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 bsel = 2b00
                 ra2 = 4h2
-                z = alu_out
+                z = alu_out[0]
                 
                 if (z == 0){
                     state.d = State.WRONG
@@ -144,12 +146,12 @@ module fsm #(
                 wdsel = 2b00
                 ra1 = 4h4
                 alu_b = 32d1
-                z = alu_out   //NOTE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                z = alu_out[0]   //NOTE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 
-                if (z==0) {
-                    state.d = State.CHECK 
+                if (z!=0) {
+                    state.d = State.LIFE_COUNT 
                 } else {
-                    state.d = State.LIFE_COUNT  
+                    state.d = State.CHECK  
                 }
             
             State.LIFE_COUNT:
@@ -170,7 +172,7 @@ module fsm #(
                 bsel = 2b01
                 ra1 = 4h7
                 alu_b = 32d1
-                z = alu_out
+                z = alu_out[0]
                 if(z!=0){
                     state.d = State.COMPARE_SCORE
                 }
@@ -185,13 +187,13 @@ module fsm #(
                 wdsel = 2b00
                 ra1 = 4h7
                 ra2 = 4h8
-                z = alu_out
-                 if(z!=0){
-                        state.d = State.STORE_SCORE
-                    }
-                    else{
-                        state.d = State.ENDGAME
-                    }
+                z = alu_out[0]
+                if(z!=0){
+                    state.d = State.STORE_SCORE
+                }
+                else{
+                    state.d = State.ENDGAME
+                }
             
             State.STORE_SCORE:
                 alu_alufn = 6b000000
@@ -262,7 +264,7 @@ module fsm #(
                 bsel = 2b11             // Assuming 2b11 = constant 3?
                 ra1 = 4h2
                 alu_b = 32d2            // "bomb" identifier
-                z = alu_out
+                z = alu_out[0]
                 if (z == 0) {
                     state.d = State.LIFE_COUNT
                 } else {
@@ -271,9 +273,9 @@ module fsm #(
             
             State.ENDGAME_HIGHSCORE:
                 state.d = State.IDLE
-
             
- 
+            
+            
         }
     }
     
