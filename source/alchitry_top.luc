@@ -12,41 +12,17 @@ module alchitry_top (
     input btn_pancake_raw,
     input btn_milkshake_raw,
     input btn_start_raw
-    
 ) {
     
     sig rst                 // reset signal
     
-    .clk(clk) {
-        // The reset conditioner is used to synchronize the reset signal to the FPGA
-        // clock. This ensures the entire FPGA comes out of reset at the same time.
-        reset_conditioner reset_cond   
-        button_conditioner pancake_btn_cond(
-            .clk(clk),
-            .in(btn_pancake_raw),
-            .out(btn_pancake)
-        )
-        
-        button_conditioner milkshake_btn_cond(
-            .clk(clk),
-            .in(btn_milkshake_raw),
-            .out(btn_milkshake)
-        )
-        
-        button_conditioner start_btn_cond(
-            .clk(clk),
-            .in(btn_start_raw),
-            .out(btn_start)
-        )     
-        
-    }
-    
+
     const CLK_FREQ = $is_sim() ? 1000 : 10000000 // put 1000 for sim, 10000000 otherwise in hardware
     
     // Mode selection signal
     sig use_manual  // Determines which tester to use
     
-    sig io_led_mux
+    sig io_led_mux[3][8]
     sig io_segment_mux
     sig io_select_mux
     sig mux_alu_a[32]
@@ -58,6 +34,16 @@ module alchitry_top (
     sig btn_pancake
     sig btn_milkshake
     sig btn_start
+    
+    .clk(clk) {
+        // The reset conditioner is used to synchronize the reset signal to the FPGA
+        // clock. This ensures the entire FPGA comes out of reset at the same time.
+        reset_conditioner reset_cond   
+        button_conditioner pancake_btn_cond(#CLK_FREQ(CLK_FREQ), .in(btn_pancake_raw))        
+        button_conditioner milkshake_btn_cond(#CLK_FREQ(CLK_FREQ), .in(btn_milkshake_raw))
+        button_conditioner start_btn_cond(#CLK_FREQ(CLK_FREQ), .in(btn_start_raw))     
+        
+    }
     
     /*asel_bsel_mux mux_inst(
         .clk(clk),
@@ -82,13 +68,18 @@ module alchitry_top (
         // etc.
     )
     /*
-    alu_manual_tester alu_manual(.clk(clk), .rst(rst), .io_button(io_button), .io_dip(io_dip), #CLK_FREQ(CLK_FREQ)) 
+     
     game_top game(.clk(clk), .rst(rst), .io_button(io_button), .io_dip(io_dip), 
         .io_led(io_led_mux), .io_segment(io_segment), .io_select(io_select))    */
     
-    
+    alu_manual_tester alu_manual(.clk(clk), .rst(rst), .io_button(io_button), .io_dip(io_dip), #CLK_FREQ(CLK_FREQ))
     
     always {
+        io_segment_mux = 8h00  // All segments off
+        io_select_mux = 8h00  // All select off
+        io_led_mux[0] = 8h00
+        io_led_mux[1] = 8h00
+        io_led_mux[2] = 8h00
         reset_cond.in = ~rst_n  // input raw inverted reset signal
         rst = reset_cond.out    // conditioned reset
         
@@ -100,7 +91,7 @@ module alchitry_top (
         // Mux outputs based on mode selection
         io_segment = use_manual ? alu_manual.io_segment : io_segment_mux
         io_select  = use_manual ? alu_manual.io_select  : io_select_mux
-        io_led     = use_manual ? alu_manual.io_led     : io_led_mux
+        io_led     = use_manual ? alu_manual.io_led : io_led_mux
         
         // Instantiate game_top and route buttons and I/O outputs
 }

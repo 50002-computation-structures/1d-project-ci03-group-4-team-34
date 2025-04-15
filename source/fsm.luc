@@ -6,6 +6,8 @@ module fsm #(
     input clk,
     input rst,
     input alu_out[32],
+    input increase_counter,
+    input decrease_timer,
     output alu_alufn[6],
     output we,
     output wdsel[2],
@@ -26,7 +28,7 @@ module fsm #(
         COMPARE_SCORE, STORE_SCORE, ENDGAME, ENDGAME_HIGHSCORE
     }
     
-    dff state[5](#INIT(State.IDLE), .clk(clk), .rst(rst))
+    dff state[$width(State)](#INIT(State.IDLE), .clk(clk), .rst(rst))
     sig z
     
     sig we_sig
@@ -60,9 +62,7 @@ module fsm #(
         .rd1(rd1),
         .rd2(rd2),
         .asel_sel(asel_sig),
-        .bsel_sel(bsel_sig),
-        .alu_a(alu_a_sig),
-        .alu_b(alu_b_sig)
+        .bsel_sel(bsel_sig)
     )
     
     always {
