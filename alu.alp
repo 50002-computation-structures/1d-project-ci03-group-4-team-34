@@ -164,12 +164,6 @@
             {
                 "file": {
                     "type": "DiskFile",
-                    "path": "source/fsm.luc"
-                }
-            },
-            {
-                "file": {
-                    "type": "DiskFile",
                     "path": "source/regfile.luc"
                 }
             },
@@ -188,25 +182,43 @@
             {
                 "file": {
                     "type": "DiskFile",
-                    "path": "source/game_top.luc"
+                    "path": "source/data_ram.luc"
                 }
             },
             {
                 "file": {
                     "type": "DiskFile",
-                    "path": "source/au_top.luc"
+                    "path": "source/data_rom.luc"
                 }
             },
             {
                 "file": {
                     "type": "DiskFile",
-                    "path": "source/reverser.luc"
+                    "path": "source/index_reverser.luc"
                 }
             },
             {
                 "file": {
                     "type": "DiskFile",
-                    "path": "source/ws2812b_writer.luc"
+                    "path": "source/manual_mode.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/ram_mode.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/static_mode.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/ws2812b_driver.luc"
                 }
             }
         ],
