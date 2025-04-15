@@ -188,25 +188,25 @@
             {
                 "file": {
                     "type": "DiskFile",
+                    "path": "source/game_top.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
                     "path": "source/au_top.luc"
                 }
             },
             {
                 "file": {
                     "type": "DiskFile",
-                    "path": "source/max7219.luc"
+                    "path": "source/reverser.luc"
                 }
             },
             {
                 "file": {
                     "type": "DiskFile",
-                    "path": "source/max7219_driver.luc"
-                }
-            },
-            {
-                "file": {
-                    "type": "DiskFile",
-                    "path": "source/game_top.luc"
+                    "path": "source/ws2812b_writer.luc"
                 }
             }
         ],
