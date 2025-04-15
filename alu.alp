@@ -194,18 +194,6 @@
             {
                 "file": {
                     "type": "DiskFile",
-                    "path": "source/max7219.luc"
-                }
-            },
-            {
-                "file": {
-                    "type": "DiskFile",
-                    "path": "source/max7219_driver.luc"
-                }
-            },
-            {
-                "file": {
-                    "type": "DiskFile",
                     "path": "source/game_top.luc"
                 }
             }

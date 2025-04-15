@@ -155,7 +155,7 @@ module fsm #(
                 state.d = State.DECRE_TIME
             
             State.DECRE_TIME:
-                
+
                 alu_alufn = 6b000001
                 asel_sig = 2b00
                 bsel_sig = 2b10

@@ -55,11 +55,11 @@ module alchitry_top (
         .asel(asel),
         .bsel(bsel),
         // etc.
-        
-    
+    );
+        /*
     alu_manual_tester alu_manual(.clk(clk), .rst(rst), .io_button(io_button), .io_dip(io_dip), #CLK_FREQ(CLK_FREQ)) 
     game_top game(.clk(clk), .rst(rst), .io_button(io_button), .io_dip(io_dip), 
-        .io_led(io_led_mux), .io_segment(io_segment), .io_select(io_select))
+        .io_led(io_led_mux), .io_segment(io_segment), .io_select(io_select)) */
     
     
     
