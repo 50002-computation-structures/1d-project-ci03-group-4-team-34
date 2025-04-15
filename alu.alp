@@ -196,6 +196,18 @@
                     "type": "DiskFile",
                     "path": "source/button_conditioner.luc"
                 }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/pn_gen.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/random_number_generator.luc"
+                }
             }
         ],
         "constraintFiles": [

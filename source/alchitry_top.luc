@@ -12,7 +12,6 @@ module alchitry_top (
     input btn_pancake_raw,
     input btn_milkshake_raw,
     input btn_start_raw
-    
 ) {
     
     sig rst                 // reset signal
@@ -38,6 +37,9 @@ module alchitry_top (
             .in(btn_start_raw),
             .out(btn_start)
         )     
+        
+        //edge_detector button_conditioner(#RISE(1), #FALL(0), .in(start_btn_cond.out))
+        //random_number_generator generator(.slow_clk(slow_clk.value), .refresh(start_btn_cond.out))
         
     }
     
@@ -78,15 +80,13 @@ module alchitry_top (
         .alu_out(alu_out),
         // other fsm signals ...
         .asel(asel),
-        .bsel(bsel),
+        .bsel(bsel)
         // etc.
     )
     /*
     alu_manual_tester alu_manual(.clk(clk), .rst(rst), .io_button(io_button), .io_dip(io_dip), #CLK_FREQ(CLK_FREQ)) 
     game_top game(.clk(clk), .rst(rst), .io_button(io_button), .io_dip(io_dip), 
-        .io_led(io_led_mux), .io_segment(io_segment), .io_select(io_select))    */
-    
-    
+        .io_led(io_led_mux), .io_segment(io_segment), .io_select(io_select))    */  
     
     always {
         reset_cond.in = ~rst_n  // input raw inverted reset signal
@@ -98,21 +98,22 @@ module alchitry_top (
         use_manual = io_dip[0][0]  // DIP[0][0] selects mode
         
         // Mux outputs based on mode selection
-        io_segment = use_manual ? alu_manual.io_segment : io_segment_mux
-        io_select  = use_manual ? alu_manual.io_select  : io_select_mux
+        //io_segment = use_manual ? alu_manual.io_segment : io_segment_mux
+        //io_select  = use_manual ? alu_manual.io_select  : io_select_mux
         io_led     = use_manual ? alu_manual.io_led     : io_led_mux
-        
+
         // Instantiate game_top and route buttons and I/O outputs
-        game_top game(
-    .clk(clk),
-    .rst(rst),
-    .io_button(io_button),
-    .io_dip(io_dip),
-    .btn_pancake(btn_pancake),
-    .btn_milkshake(btn_milkshake),
-    .btn_start(btn_start),
-    .io_led(io_led_mux),
-    .io_segment(io_segment_mux),
-    .io_select(io_select_mux)
-    )
-    }
+       // game_top game(
+    //.clk(clk),
+    //.rst(rst),
+    //.io_button(io_button),
+    //.io_dip(io_dip),
+    //.btn_pancake(btn_pancake),
+    //.btn_milkshake(btn_milkshake),
+    //.btn_start(btn_start),
+    //.io_led(io_led_mux),
+    //.io_segment(io_segment_mux),
+    //.io_select(io_select_mux)
+    //)
+        }
+}
