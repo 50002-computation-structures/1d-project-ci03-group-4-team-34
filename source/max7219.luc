@@ -1,6 +1,6 @@
 
 module max7219 #(
-  CHAIN = 1 : CHAIN > 0,
+  CHAIN = 4 : CHAIN > 0,
   SPEED = 4 : SPEED >= 4
     
   ) 
@@ -42,11 +42,12 @@ module max7219 #(
   sig slowclock_value;
 
   always  {
-    slowclock_value = slowclock.value[SPEED]; // index 4 is minimum, because 100/2^4 Mhz = 6.125Mhz, set to higher value like 27 to debug
+    slowclock_value = slowclock.value[25]; // index 4 is minimum, because 100/2^4 Mhz = 6.125Mhz, set to higher value like 27 to debug
+
+    //slowclock_value = slowclock.value[SPEED]; // index 4 is minimum, because 100/2^4 Mhz = 6.125Mhz, set to higher value like 27 to debug
     slowclock_edge.in = slowclock_value;
     sck = slowclock_value;
     
- 
     busy = !(state.q == State.IDLE)
 
     dout = 0;
@@ -80,7 +81,6 @@ module max7219 #(
           
           state.d = State.TRANSFER_ADDR;
         }
-        
         
       State.TRANSFER_ADDR:
         debug_state = 8b11; // in transfer addr state

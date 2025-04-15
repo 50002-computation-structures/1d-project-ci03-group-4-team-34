@@ -164,12 +164,6 @@
             {
                 "file": {
                     "type": "DiskFile",
-                    "path": "source/autop.luc"
-                }
-            },
-            {
-                "file": {
-                    "type": "DiskFile",
                     "path": "source/max7219.luc"
                 }
             },
@@ -184,12 +178,6 @@
             {
                 "file": {
                     "type": "Component",
-                    "path": "Constraints/io_v1.acf"
-                }
-            },
-            {
-                "file": {
-                    "type": "Component",
                     "path": "Constraints/alchitry.acf"
                 }
             },
@@ -197,6 +185,12 @@
                 "file": {
                     "type": "DiskFile",
                     "path": "constraint/matrix.acf"
+                }
+            },
+            {
+                "file": {
+                    "type": "Component",
+                    "path": "Constraints/io_v1_pulldown.acf"
                 }
             }
         ],

@@ -28,11 +28,10 @@ module alchitry_top (
     
     alu_manual_tester alu_manual(.clk(clk), .rst(rst), .io_button(io_button), .io_dip(io_dip), #CLK_FREQ(CLK_FREQ)) 
     alu_automatic_tester alu_auto(.clk(clk), .rst(rst), .io_button(io_button), .io_dip(io_dip), #CLK_FREQ(CLK_FREQ)) 
-    const CHAIN = 4 
-    const SPEED = 5
-                    // reset signal
+    const CHAIN = 4
+    const SPEED = 4
+    // reset signal
     max7219_driver max7219_driver(#CHAIN(CHAIN), #SPEED(SPEED), .clk(clk), .rst(rst)) 
-    
     
     const A = $reverse(b01110111)
     const B = $reverse(b00011111)
@@ -40,8 +39,11 @@ module alchitry_top (
     const E = $reverse(b01001111)
     const F = $reverse(b01000111)
     
-    const TESTWORDS = {$reverse({c{CHAINx{B}}, c{CHAINx{E}}, c{CHAINx{E}}, c{CHAINx{E}}, c{CHAINx{E}}, c{CHAINx{E}}, c{CHAINx{E}}, c{CHAINx{F}}}), 
-        $reverse({c{CHAINx{D}}, c{CHAINx{E}}, c{CHAINx{A}}, c{CHAINx{D}}, c{CHAINx{B}}, c{CHAINx{E}}, c{CHAINx{E}}, c{CHAINx{F}}})}
+    const TESTWORDS = {$reverse({c{CHAINx{B}}, c{CHAINx{E}}, c{CHAINx{E}}, c{CHAINx{E}}, 
+                c{CHAINx{E}}, c{CHAINx{E}}, c{CHAINx{E}}, c{CHAINx{F}}}), 
+       $reverse({c{CHAINx{D}}, c{CHAINx{E}}, c{CHAINx{A}}, c{CHAINx{D}}, c{CHAINx{B}}, 
+                c{CHAINx{E}}, c{CHAINx{E}}, c{CHAINx{F}}})}
+    //const TESTWORDS = {({B,E,E,E,E,E,E,F}),({D,E,A,D,B,E,E,F})}
     
     dff done(#INIT(0),.clk(clk))
     dff sample_index(#INIT(0), .clk(clk))
@@ -53,7 +55,7 @@ module alchitry_top (
         
         led = 8h00             // turn LEDs off
         io_seg = 3b000
-        usb_tx = usb_rx          // loop serial port
+        //usb_tx = usb_rx          // loop serial port
         
         // Use first DIP switch to select mode (1=manual, 0=auto)
         use_manual = io_dip[0][0]
@@ -77,7 +79,7 @@ module alchitry_top (
         max7219_driver.send= 0
         
         // at first, it will show DEADBEEF
-        max7219_driver.segment_values = TESTWORDS[sample_index.q] // topmost row will display B for [1] or D for [0]
+        max7219_driver.segment_values = TESTWORDS[done.q] // topmost row will display B for [1] or D for [0]
         
         
         // This is a test code, do not copy blindly 
@@ -101,8 +103,6 @@ module alchitry_top (
         io_led[2] = max7219_driver.debug_writer // only view the data writer counter
         
         
-        
-        
         if (io_dip[2] == 8d1){
             io_led[2][7] = max7219_driver.max7219_data
             io_led[2][6] = max7219_driver.max7219_load
@@ -124,8 +124,8 @@ module alchitry_top (
         
         
         // actual output
-        io_seg[0] = max7219_driver.max7219_data // A45 
-        io_seg[1] = max7219_driver.max7219_load // A46
-        io_seg[2] = max7219_driver.max7219_clock // A6
+        io_seg[0] = max7219_driver.max7219_data // C48
+        io_seg[1] = max7219_driver.max7219_load // C2
+        io_seg[2] = max7219_driver.max7219_clock // C3
     }
 }
