@@ -116,12 +116,6 @@
             {
                 "file": {
                     "type": "Component",
-                    "path": "Conditioning/button_conditioner.luc"
-                }
-            },
-            {
-                "file": {
-                    "type": "Component",
                     "path": "Pulses/edge_detector.luc"
                 }
             },
@@ -196,6 +190,12 @@
                     "type": "DiskFile",
                     "path": "source/game_top.luc"
                 }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/button_conditioner.luc"
+                }
             }
         ],
         "constraintFiles": [
@@ -209,6 +209,12 @@
                 "file": {
                     "type": "Component",
                     "path": "Constraints/alchitry.acf"
+                }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "constraint/top.acf"
                 }
             }
         ],
