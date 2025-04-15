@@ -182,12 +182,6 @@
             {
                 "file": {
                     "type": "DiskFile",
-                    "path": "source/au_top.luc"
-                }
-            },
-            {
-                "file": {
-                    "type": "DiskFile",
                     "path": "source/button_conditioner.luc"
                 }
             },
