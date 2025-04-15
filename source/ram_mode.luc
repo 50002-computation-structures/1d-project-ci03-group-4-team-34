@@ -94,7 +94,7 @@ module ram_mode #(
         .alu_out(alu_result)
     )
     
-    
+    //always block
     always {
         alu_inst.alufn = control_unit.alu_alufn
         wa = control_unit.wa
