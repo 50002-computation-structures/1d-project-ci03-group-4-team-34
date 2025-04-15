@@ -53,7 +53,7 @@ module ram_mode #(
             // dff temp_value[32]
         }
     }
-    
+   
     // Register file I/O
     sig reg_we
     sig reg_wa[4]
@@ -80,7 +80,7 @@ module ram_mode #(
     sig a_sel[2]
     sig b_sel[2]
     sig wsel[2]
-    sig alu_inst[6]
+    fsm control_unit(#CLK_FREQ(CLK_FREQ));
     // user inputs 
     button_conditioner input_button[5](.clk(5x{{clk}}), #CLK_FREQ(5x{{CLK_FREQ}}))
     edge_detector input_edge[5](.clk(5x{{clk}}), #RISE(5x{{1}}), #FALL(5x{{0}}))
@@ -88,24 +88,8 @@ module ram_mode #(
     sig pancake_pressed
     sig milkshake_pressed
     
-    fsm control_unit (
-        .clk(clk),
-        .rst(rst),
-        .alu_out(alu_result)
-    )
-    
-    //always block
     always {
-        alu_inst.alufn = control_unit.alu_alufn
-        wa = control_unit.wa
-        we = control_unit.we
-        wdsel = control_unit.wdsel
-        asel = control_unit.asel
-        bsel = control_unit.bsel
-        ra1 = control_unit.ra1
-        ra2 = control_unit.ra2
-        alu_a = control_unit.alu_a
-        alu_b = control_unit.alu_b
+        
         data = driver.data
         // Map only the used buttons: [3] left = pancake, [4] right = milkshake, [0] center = bomb
         input_button.in = c{
