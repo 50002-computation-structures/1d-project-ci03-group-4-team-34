@@ -1,7 +1,7 @@
 // fsm.luc (Fixed with internal signals for wiring)
 
 module fsm #(
-    CLK_FREQ ~ 1000 : CLK_FREQ > 0
+    CLK_FREQ = 100000000
 )(
     input clk,
     input rst,
@@ -42,7 +42,7 @@ module fsm #(
     sig rd2[32]
     
     // Register file instantiation
-    register_file regfile(
+    regfile regfile(
         .clk(clk),
         .rst(rst),
         .we(we_sig),

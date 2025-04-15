@@ -59,7 +59,7 @@ module alchitry_top (
     sig btn_milkshake
     sig btn_start
     
-    asel_bsel_mux mux_inst(
+    /*asel_bsel_mux mux_inst(
         .clk(clk),
         // Suppose you have signals like rd1, rd2 for register file outputs:
         .rd1(rd1),
@@ -103,16 +103,5 @@ module alchitry_top (
         io_led     = use_manual ? alu_manual.io_led     : io_led_mux
         
         // Instantiate game_top and route buttons and I/O outputs
-        game_top game(
-    .clk(clk),
-    .rst(rst),
-    .io_button(io_button),
-    .io_dip(io_dip),
-    .btn_pancake(btn_pancake),
-    .btn_milkshake(btn_milkshake),
-    .btn_start(btn_start),
-    .io_led(io_led_mux),
-    .io_segment(io_segment_mux),
-    .io_select(io_select_mux)
-    )
-    }
+}
+}

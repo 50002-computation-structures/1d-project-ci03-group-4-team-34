@@ -188,13 +188,25 @@
             {
                 "file": {
                     "type": "DiskFile",
-                    "path": "source/game_top.luc"
+                    "path": "source/button_conditioner.luc"
                 }
             },
             {
                 "file": {
                     "type": "DiskFile",
-                    "path": "source/button_conditioner.luc"
+                    "path": "source/ram_mode.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/data_ram.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/index_reverser.luc"
                 }
             }
         ],
