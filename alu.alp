@@ -194,12 +194,6 @@
             {
                 "file": {
                     "type": "DiskFile",
-                    "path": "source/datapath.luc"
-                }
-            },
-            {
-                "file": {
-                    "type": "DiskFile",
                     "path": "source/pn_gen.luc"
                 }
             },
@@ -207,6 +201,24 @@
                 "file": {
                     "type": "DiskFile",
                     "path": "source/variable_timer.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/static_mode.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/ws2812b_driver.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/datapath.luc"
                 }
             }
         ],
@@ -221,12 +233,6 @@
                 "file": {
                     "type": "Component",
                     "path": "Constraints/alchitry.acf"
-                }
-            },
-            {
-                "file": {
-                    "type": "DiskFile",
-                    "path": "constraint/top.acf"
                 }
             }
         ],

@@ -1,7 +1,0 @@
-STANDARD(LVCMOS33) { // standard 3.3V IO standard
-    // add pin constraints here
-    // pin SIGNAL PORT OPTIONAL_ATTRIBUTES
-    set_io btn_pancake_raw C8
-    set_io btn_milkshake_raw C9
-    set_io btn_start_raw C6
-}

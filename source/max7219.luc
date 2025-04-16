@@ -1,0 +1,98 @@
+module max7219 #(
+  CHAIN = 1: CHAIN > 0,
+  SPEED = 4: SPEED >= 4
+)(
+  input clk,
+  input rst,
+  input addr_in[8*CHAIN],
+  input din[8*CHAIN],
+  input start,
+  output cs,
+  output dout,
+  output sck,
+  output busy,
+  output debug_state[8],
+  output debug_counter[8],
+  output debug_writer[$clog2(8*CHAIN)*2],
+  output debug_data[8],
+  output debug_address[8]
+) {
+  sig slowclock_value;
+  sig dout_reg;
+
+  dff load_state(.clk(clk), .rst(rst), .d(load_state.d), .q(load_state.q), #INIT(1));
+  dff addr[8*CHAIN](.clk(clk), .rst(rst), .d(addr.d), .q(addr.q));
+  dff data[8*CHAIN](.clk(clk), .rst(rst), .d(data.d), .q(data.q));
+  dff address_write_pointer[$clog2(8*CHAIN)](.clk(clk), .rst(rst), .d(address_write_pointer.d), .q(address_write_pointer.q), #INIT(0));
+  dff data_write_pointer[$clog2(8*CHAIN)](.clk(clk), .rst(rst), .d(data_write_pointer.d), .q(data_write_pointer.q), #INIT(0));
+  dff chain[$clog2(CHAIN)](.clk(clk), .rst(rst), .d(chain.d), .q(chain.q), #INIT(0));
+
+  fsm state(.clk(clk), .rst(rst), #INIT(IDLE),
+    .states({IDLE, TRANSFER_ADDR, TRANSFER_DATA, SET_LATCH, WAIT_LATCH})
+  );
+
+  counter slowclock(.clk(clk), .rst(rst), #SIZE(30));
+  edge_detector slowclock_edge(.clk(clk), .rst(rst), .in(slowclock.value[SPEED]));
+
+  always {
+    slowclock_value = slowclock.value[SPEED];
+    dout = dout_reg;
+    sck = slowclock_value;
+    busy = state.q != IDLE;
+
+    debug_state = 8b11111111;
+    debug_counter = 0;
+    debug_writer = c{address_write_pointer.q, data_write_pointer.q};
+    debug_data = data.q;
+    debug_address = addr.q;
+
+    addr.d = addr.q;
+    data.d = data.q;
+    address_write_pointer.d = address_write_pointer.q;
+    data_write_pointer.d = data_write_pointer.q;
+    chain.d = chain.q;
+    load_state.d = load_state.q;
+
+    case (state.q) {
+      IDLE:
+        debug_state = 8b1111;
+        if (start) {
+          addr.d = addr_in;
+          data.d = din;
+          address_write_pointer.d = 0;
+          data_write_pointer.d = 0;
+          chain.d = 0;
+          load_state.d = 0;
+          state.d = TRANSFER_ADDR;
+        }
+
+      TRANSFER_ADDR:
+        debug_state = 8b0011;
+        dout_reg = addr.q[address_write_pointer.q];
+        if (slowclock_edge.out) address_write_pointer.d = address_write_pointer.q + 1;
+        if (&address_write_pointer.q[2:0] & slowclock_edge.out) state.d = TRANSFER_DATA;
+
+      TRANSFER_DATA:
+        debug_state = 8b0111;
+        dout_reg = data.q[data_write_pointer.q];
+        if (slowclock_edge.out) data_write_pointer.d = data_write_pointer.q + 1;
+        if (&data_write_pointer.q[2:0] & slowclock_edge.out) {
+          if (CHAIN > 1 & ~&chain.q) {
+            chain.d = chain.q + 1;
+            state.d = TRANSFER_ADDR;
+          } else {
+            state.d = SET_LATCH;
+          }
+        }
+
+      SET_LATCH:
+        load_state.d = 1;
+        state.d = WAIT_LATCH;
+
+      WAIT_LATCH:
+        if (slowclock_edge.out) state.d = IDLE;
+    }
+
+    cs = load_state.q;
+  }
+}

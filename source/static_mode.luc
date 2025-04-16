@@ -1,0 +1,178 @@
+module static_mode#(
+    COLUMN_DIMENSION = 16d16,
+    ROW_DIMENSION = 16d16,
+    PIXEL_COUNT = 16d256,
+    BUFFER_SIZE = 1024
+) (
+    input clk,
+    input rst,
+    output led[8],
+    output io_led[3][8],
+    output io_segment[8],
+    output io_select[4],
+    input io_button[5],
+    input io_dip[3][8],
+    output data
+) {
+    // Color encoding: BLUE, RED, GREEN, OFF
+    const COLOR_ENCODING = {24h0000FF, 24hFF0000, 24h00FF00, 24h0}
+    
+    // Sprite memory
+    
+    const CAT_SPRITE = $reverse({
+            2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,
+            2b00,2b00,2b01,2b01,2b00,2b00,2b01,2b01,2b00,2b00,2b01,2b01,2b00,2b00,2b01,2b01,
+            2b00,2b01,2b01,2b01,2b00,2b01,2b01,2b01,2b00,2b01,2b01,2b01,2b00,2b01,2b01,2b01,
+            2b01,2b01,2b01,2b01,2b01,2b01,2b01,2b01,2b01,2b01,2b01,2b01,2b01,2b01,2b01,2b01,
+            2b01,2b01,2b01,2b00,2b01,2b01,2b00,2b01,2b01,2b00,2b01,2b01,2b00,2b01,2b01,2b01,
+            2b01,2b01,2b00,2b00,2b01,2b00,2b00,2b01,2b00,2b00,2b01,2b00,2b00,2b01,2b01,2b01,
+            2b01,2b01,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b01,2b01,
+            2b01,2b00,2b00,2b00,2b01,2b01,2b00,2b00,2b00,2b00,2b01,2b01,2b00,2b00,2b00,2b01,
+            2b01,2b00,2b00,2b01,2b01,2b01,2b00,2b00,2b00,2b01,2b01,2b01,2b00,2b00,2b00,2b01,
+            2b01,2b00,2b01,2b01,2b01,2b01,2b00,2b00,2b00,2b01,2b01,2b01,2b00,2b00,2b00,2b01,
+            2b01,2b00,2b01,2b01,2b01,2b01,2b00,2b00,2b00,2b01,2b01,2b01,2b00,2b00,2b00,2b01,
+            2b00,2b00,2b00,2b01,2b01,2b01,2b00,2b00,2b00,2b01,2b01,2b01,2b00,2b00,2b00,2b00,
+            2b00,2b00,2b00,2b00,2b01,2b01,2b00,2b00,2b00,2b01,2b01,2b00,2b00,2b00,2b00,2b00,
+            2b00,2b00,2b00,2b00,2b00,2b01,2b00,2b00,2b00,2b01,2b00,2b00,2b00,2b00,2b00,2b00,
+            2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,
+            2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00
+        })
+    
+    const RABBIT_SPRITE = $reverse({
+            2b00,2b00,2b01,2b00,2b00,2b00,2b01,2b00,2b01,2b00,2b00,2b00,2b01,2b00,2b00,2b00,
+            2b00,2b01,2b01,2b00,2b00,2b01,2b01,2b00,2b01,2b01,2b00,2b00,2b01,2b01,2b00,2b00,
+            2b01,2b01,2b01,2b00,2b01,2b01,2b01,2b00,2b01,2b01,2b01,2b00,2b01,2b01,2b01,2b00,
+            2b01,2b01,2b01,2b01,2b01,2b01,2b01,2b01,2b01,2b01,2b01,2b01,2b01,2b01,2b01,2b01,
+            2b00,2b01,2b01,2b01,2b01,2b00,2b00,2b00,2b00,2b01,2b01,2b01,2b01,2b00,2b00,2b00,
+            2b00,2b00,2b00,2b01,2b01,2b00,2b00,2b00,2b00,2b00,2b00,2b01,2b01,2b00,2b00,2b00,
+            2b00,2b00,2b01,2b01,2b01,2b00,2b00,2b00,2b00,2b00,2b01,2b01,2b01,2b00,2b00,2b00,
+            2b00,2b00,2b01,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b01,2b00,2b00,2b00,2b00,2b00,
+            2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,
+            2b00,2b01,2b00,2b00,2b00,2b00,2b01,2b01,2b01,2b00,2b00,2b00,2b00,2b00,2b01,2b00,
+            2b01,2b01,2b01,2b00,2b00,2b00,2b01,2b01,2b01,2b00,2b00,2b00,2b01,2b01,2b01,2b00,
+            2b01,2b01,2b01,2b00,2b00,2b00,2b01,2b01,2b01,2b00,2b00,2b00,2b01,2b01,2b01,2b00,
+            2b01,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,
+            2b01,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,
+            2b00,2b01,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b01,2b00,
+            2b00,2b00,2b01,2b01,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b01,2b01,2b00,2b00,2b00
+        })
+    
+    const BOMB_SPRITE = $reverse({
+            2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,
+            2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,
+            2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b01,2b00,2b00,2b00,2b00,2b00,2b00,2b00,
+            2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b01,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,
+            2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b01,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,
+            2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b01,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,
+            2b00,2b00,2b00,2b00,2b00,2b00,2b01,2b00,2b01,2b00,2b00,2b00,2b00,2b00,2b00,2b00,
+            2b00,2b00,2b00,2b00,2b00,2b01,2b00,2b00,2b00,2b01,2b00,2b00,2b00,2b00,2b00,2b00,
+            2b00,2b00,2b00,2b00,2b01,2b00,2b00,2b00,2b00,2b00,2b01,2b00,2b00,2b00,2b00,2b00,
+            2b00,2b00,2b00,2b00,2b01,2b00,2b00,2b00,2b00,2b00,2b01,2b00,2b00,2b00,2b00,2b00,
+            2b00,2b00,2b00,2b00,2b00,2b01,2b00,2b00,2b00,2b01,2b00,2b00,2b00,2b00,2b00,2b00,
+            2b00,2b00,2b00,2b00,2b00,2b00,2b01,2b00,2b01,2b00,2b00,2b00,2b00,2b00,2b00,2b00,
+            2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b01,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,
+            2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,
+            2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,
+            2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00,2b00
+        })
+    // Sprite selection signal
+    sig selected_sprite[256][2]
+    sig sprite_select[2]
+    // Register access signals
+    sig reg_ra[4]
+    sig reg_rd[32]
+    
+    
+    // WS2812b driver setup
+    sig pixel_address[BUFFER_SIZE]
+    const CLK_FREQ = $is_sim() ? 1000 : 100000000
+    
+    index_reverser index_reverser(#COLUMN_DIMENSION(COLUMN_DIMENSION), #SIZE($clog2(PIXEL_COUNT)))
+    ws2812b_driver driver(#PIXEL_COUNT(PIXEL_COUNT), .clk(clk), .rst(rst))
+    
+    .clk(clk){
+        button_conditioner clear_button(#CLK_FREQ(CLK_FREQ), .in(io_button[1]))
+        edge_detector clear_button_edge(#RISE(1), #FALL(0), .in(clear_button.out))
+        
+        .rst(rst){
+            dff on_off_toggle
+            
+            
+        }
+    }
+    regfile regfile(
+        .clk(clk),
+        .rst(rst),
+        .we(1b0), // No write
+        .wa(4h0), .wd(32h0), // Unused write
+        .ra1(reg_ra),
+        .ra2(4h0)
+        
+        
+    )
+    
+    always {
+        // Defaults
+        reg_rd = regfile.rd1  // << this is the correct way
+        led = 8h00
+        io_led = 3x{{8h00}}
+        io_segment = 8hff
+        io_select = 4hf
+        data = 0
+        
+        // Toggle persistence
+        on_off_toggle.d = on_off_toggle.q
+        driver.update = on_off_toggle.q
+        driver.clear = 0
+        
+        // Button press clears and toggles
+        if (clear_button_edge.out){
+            driver.clear = 1
+            on_off_toggle.d = ~on_off_toggle.q
+        }
+        
+        // Reversed address option
+        index_reverser.input_address = driver.pixel_address
+        if (io_dip[2][7]) {
+            pixel_address = index_reverser.output_address
+        } else {
+            pixel_address = driver.pixel_address
+        }
+        
+        // === REGFILE READ ===
+        reg_ra = d5  // random number at address 0x5
+        sprite_select = reg_rd[1:0]  // only use 2-3 LSBs for selection
+        
+        // === SELECT SPRITE ===
+        
+        reg_ra = d5  // access register 0x5
+        sprite_select = reg_rd[1:0]  // lowest 2 bits of random number
+        
+        // === SELECT SPRITE ===
+        case (sprite_select) {
+            d0:
+                selected_sprite = RABBIT_SPRITE
+            d1:
+                selected_sprite = CAT_SPRITE
+            d2:
+                selected_sprite = BOMB_SPRITE 
+            default:
+                selected_sprite = RABBIT_SPRITE
+        }
+        
+        
+        
+        // === DISPLAY COLOR ===
+        driver.color = COLOR_ENCODING[selected_sprite[$resize(pixel_address, 8)]]
+        data = driver.data
+        
+        // === DEBUG MODE ===
+        if (io_dip[2][6]){
+            io_led[0] = reg_rd[7:0]
+            io_led[1] = sprite_select
+            io_led[2] = pixel_address
+        }
+        
+        led[7] = on_off_toggle.q
+    }
+}

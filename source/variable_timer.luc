@@ -11,6 +11,7 @@ module variable_timer
 ) {
     
     const GENERATE_NUMBER_CLOCK_SPEED = FAST_CLOCK_DIV + 1
+    
     .clk(clk){
 
         .rst(rst){

@@ -6,19 +6,16 @@ module fsm #(
     input clk,
     input rst,
     input alu_out[32],
-    input increase_counter,
-    input decrease_timer,
+    
     output alu_alufn[6],
-    output we,
+    output we[4],
     output wdsel[2],
     output wa[4],
     output asel[2],
     output bsel[2],
     output ra1[4],
     output ra2[4],
-    output current_state[5],
-    output alu_a[32],
-    output alu_b[32]
+    output current_state[5]
 ) {
     enum State {
         IDLE, RESET_LIVES, RESET_SCORES, GAME_START,
@@ -31,59 +28,31 @@ module fsm #(
     dff state[$width(State)](#INIT(State.IDLE), .clk(clk), .rst(rst))
     sig z
     
-    sig we_sig
-    sig wa_sig[4]
-    sig wdsel_sig[2]
-    sig asel_sig[2]
-    sig bsel_sig[2]
-    sig ra1_sig[4]
-    sig ra2_sig[4]
-    sig alu_a_sig[32]
-    sig alu_b_sig[32]
-    sig rd1[32]
-    sig rd2[32]
     
     // Register file instantiation
-    regfile regfile(
-        .clk(clk),
-        .rst(rst),
-        .we(we_sig),
-        .wa(wa_sig),
-        .wd(alu_out),
-        .ra1(ra1_sig),
-        .ra2(ra2_sig),
-        .rd1(rd1),
-        .rd2(rd2)
-    )
     
     // ASEL/BSEL multiplexer instantiation
-    asel_bsel_mux mux(
-        .clk(clk),
-        .rd1(rd1),
-        .rd2(rd2),
-        .asel_sel(asel_sig),
-        .bsel_sel(bsel_sig)
-    )
     
     always {
         z = 0
         current_state = state.q
         state.d = state.q
+        alu_alufn = 6b000000
+        we        = 0
+        wdsel     = 2b00
+        wa        = 4b0000
+        asel      = 2b00
+        bsel      = 2b00
+        ra1       = 4b0000
+        ra2       = 4b0000
         
-        we_sig = 0
-        wa_sig = 0
-        wdsel_sig = 0
-        asel_sig = 0
-        bsel_sig = 0
-        ra1_sig = 0
-        ra2_sig = 0
         
         case(state.q) {
             State.IDLE:
                 alu_alufn = 6b110011
-                asel_sig = 2b00
-                bsel_sig = 2b10
-                ra1_sig = 4h1
+                asel = 2b00
+                bsel = 2b10
+                ra1 = 4h1
                 z = alu_out[0]
                 if (z == 0){
                     state.d = State.IDLE
@@ -93,22 +62,21 @@ module fsm #(
             
             State.RESET_LIVES:
                 alu_alufn = 6b000000
-                asel_sig = 2b00
-                bsel_sig = 2b01
-                wa_sig = 4h7
-                we_sig = 1
-                wdsel_sig = 2b00
-                ra1_sig = 4h9
+                asel = 2b00
+                bsel = 2b01
+                wa = 4h7
+                we= 1
+                wdsel = 2b00
+                ra1 = 4h9
                 state.d = State.RESET_SCORES
             
             State.RESET_SCORES:
                 alu_alufn = 6b000010
-                asel_sig = 2b00
-                bsel_sig = 2b01
-                wa_sig = 4h8
-                we_sig = 1
-                wdsel_sig = 2b00
-                ra1_sig = 4h8
+                asel = 2b00
+                bsel = 2b01
+                wa = 4h8
+                we = 1
+                ra1 = 4h8
                 state.d = State.GAME_START
             
             State.GAME_START:
@@ -116,62 +84,57 @@ module fsm #(
             
             State.DISPLAY_LIVES:
                 alu_alufn = 6b011010
-                asel_sig = 2b00
-                we_sig = 0
-                ra1_sig = 4h7
+                ra1 = 4h7
                 state.d = State.DISPLAY_SCORE
             
             State.DISPLAY_SCORE:
                 alu_alufn = 6b011010
-                asel_sig = 2b00
-                we_sig = 0
-                ra1_sig = 4h8
+                ra1 = 4h8
                 state.d = State.RNG
             
             State.RNG:
-                wa_sig = 4h5
-                we_sig = 1
-                wdsel_sig = 2b11
-                ra1_sig = 4h5
+                wa = 4h5
+                we = 1
+                wdsel = 2b11
+                ra1 = 4h5
                 state.d = State.SHOW_ITEM
             
             State.SHOW_ITEM:
                 alu_alufn = 6b000000
-                asel_sig = 2b00
-                bsel_sig = 2b01
-                wa_sig = 4h2
-                we_sig = 1
-                wdsel_sig = 2b00
-                ra1_sig = 4h5
+                asel = 2b00
+                bsel = 2b01
+                wa = 4h2
+                we = 1
+                ra1 = 4h5
                 state.d = State.TIME_RESET
             
             State.TIME_RESET:
                 alu_alufn = 6b000000
-                asel_sig = 2b01
-                bsel_sig = 2b10
-                wa_sig = 4h4
-                we_sig = 1
-                wdsel_sig = 2b00
+                asel = 2b01
+                bsel = 2b10
+                wa = 4h4
+                we = 1
+                wdsel = 2b00
                 state.d = State.DECRE_TIME
             
             State.DECRE_TIME:
-
+                
                 alu_alufn = 6b000001
-                asel_sig = 2b00
-                bsel_sig = 2b10
-                wa_sig = 4h4
-                we_sig = 1
-                wdsel_sig = 2b00
-                ra1_sig = 4h4
+                asel = 2b00
+                bsel = 2b10
+                wa = 4h4
+                we = 1
+                wdsel = 2b00
+                ra1 = 4h4
                 state.d = State.CHECK_TIME
             
             
             State.CHECK_TIME:
                 alu_alufn = 6b110011
-                asel_sig = 2b00
-                bsel_sig = 2b01
-                wdsel_sig = 2b00
-                ra1_sig = 4h4
+                asel = 2b00
+                bsel = 2b01
+                wdsel = 2b00
+                ra1 = 4h4
                 z = alu_out[0]
                 if(z!=0){
                     state.d = State.LIFE_COUNT
@@ -181,9 +144,10 @@ module fsm #(
             
             State.CHECK:
                 alu_alufn = 6b110011
-                asel_sig = 2b00
-                bsel_sig = 2b00
-                ra2_sig = 4h2
+                asel = 2b00
+                bsel = 2b00
+                ra1  = 4h1 
+                ra2 = 4h2
                 z = alu_out[0]
                 if (z==0){
                     state.d = State.WRONG
@@ -196,12 +160,12 @@ module fsm #(
             
             State.SCORE:
                 alu_alufn = 6b000000
-                asel_sig = 2b00
-                bsel_sig = 2b01
-                wa_sig = 4h8
-                we_sig = 1
-                wdsel_sig = 2b00
-                ra1_sig = 4h8
+                asel = 2b00
+                bsel = 2b01
+                wa = 4h8
+                we = 1
+                wdsel = 2b00
+                ra1 = 4h8
                 state.d = State.GAME_START
             
             State.WRONG:
@@ -209,9 +173,9 @@ module fsm #(
             
             State.CHECK_BOMB:
                 alu_alufn = 6b110011
-                asel_sig = 2b00
-                bsel_sig = 2b11
-                ra1_sig = 4h2
+                asel = 2b00
+                bsel = 2b11
+                ra1 = 4h2
                 z = alu_out[0]
                 if (z == 0){
                     state.d = State.LIFE_COUNT
@@ -221,19 +185,19 @@ module fsm #(
             
             State.LIFE_COUNT:
                 alu_alufn = 6b000001
-                asel_sig = 2b00
-                bsel_sig = 2b10
-                wa_sig = 4h7
-                we_sig = 1
-                wdsel_sig = 2b00
-                ra1_sig = 4h7
+                asel = 2b00
+                bsel = 2b10
+                wa = 4h7
+                we = 1
+                wdsel = 2b00
+                ra1 = 4h7
                 state.d = State.CHECK_LIFE_COUNT
             
             State.CHECK_LIFE_COUNT:
                 alu_alufn = 6b110011
-                asel_sig = 2b00
-                bsel_sig = 2b01
-                ra1_sig = 4h7
+                asel = 2b00
+                bsel = 2b01
+                ra1 = 4h7
                 z = alu_out[0]
                 if (z != 0){
                     state.d = State.COMPARE_SCORE
@@ -243,11 +207,11 @@ module fsm #(
             
             State.COMPARE_SCORE:
                 alu_alufn = 6b110101
-                asel_sig = 2b00
-                bsel_sig = 2b00
-                wdsel_sig = 2b00
-                ra1_sig = 4h7
-                ra2_sig = 4h8
+                asel = 2b00
+                bsel = 2b00
+                wdsel = 2b00
+                ra1 = 4h7
+                ra2 = 4h8
                 z = alu_out[0]
                 if(z!=0){
                     state.d = State.STORE_SCORE
@@ -257,37 +221,31 @@ module fsm #(
             
             State.STORE_SCORE:
                 alu_alufn = 6b000000
-                asel_sig = 2b00
-                bsel_sig = 2b01
-                wa_sig = 4h6
-                we_sig = 1
-                wdsel_sig = 2b00
-                ra1_sig = 4h8
+                asel = 2b00
+                bsel = 2b01
+                wa = 4h6
+                we = 1
+                wdsel = 2b00
+                ra1 = 4h8
                 state.d = State.ENDGAME_HIGHSCORE
             
             State.ENDGAME:
                 alu_alufn = 6b000010
-                asel_sig = 2b00
-                bsel_sig = 2b01
-                wa_sig = 4h7
-                we_sig = 1
-                wdsel_sig = 2b00
-                ra1_sig = 4h7
+                asel = 2b00
+                bsel = 2b01
+                wa = 4h7
+                we = 1
+                wdsel = 2b00
+                ra1 = 4h7
                 state.d = State.IDLE
             
             State.ENDGAME_HIGHSCORE:
                 state.d = State.IDLE
+            
         }
         
         // Output assignments
-        we = we_sig
-        wa = wa_sig
-        wdsel = wdsel_sig
-        asel = asel_sig
-        bsel = bsel_sig
-        ra1 = ra1_sig
-        ra2 = ra2_sig
-        alu_a = alu_a_sig
-        alu_b = alu_b_sig
+        
+
     }
 }
