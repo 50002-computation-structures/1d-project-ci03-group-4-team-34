@@ -1,0 +1,251 @@
+// fsm.luc (Fixed with internal signals for wiring)
+
+module fsm #(
+    CLK_FREQ = 100000000
+)(
+    input clk,
+    input rst,
+    input alu_out[32],
+    
+    output alu_alufn[6],
+    output we[4],
+    output wdsel[2],
+    output wa[4],
+    output asel[2],
+    output bsel[2],
+    output ra1[4],
+    output ra2[4],
+    output current_state[5]
+) {
+    enum State {
+        IDLE, RESET_LIVES, RESET_SCORES, GAME_START,
+        DISPLAY_LIVES, DISPLAY_SCORE, RNG, SHOW_ITEM,
+        TIME_RESET, DECRE_TIME, CHECK_TIME, CHECK, CORRECT, SCORE,
+        WRONG, CHECK_BOMB, LIFE_COUNT, CHECK_LIFE_COUNT,
+        COMPARE_SCORE, STORE_SCORE, ENDGAME, ENDGAME_HIGHSCORE
+    }
+    
+    dff state[$width(State)](#INIT(State.IDLE), .clk(clk), .rst(rst))
+    sig z
+    
+    
+    // Register file instantiation
+    
+    // ASEL/BSEL multiplexer instantiation
+    
+    always {
+        z = 0
+        current_state = state.q
+        state.d = state.q
+        alu_alufn = 6b000000
+        we        = 0
+        wdsel     = 2b00
+        wa        = 4b0000
+        asel      = 2b00
+        bsel      = 2b00
+        ra1       = 4b0000
+        ra2       = 4b0000
+        
+        
+        case(state.q) {
+            State.IDLE:
+                alu_alufn = 6b110011
+                asel = 2b00
+                bsel = 2b10
+                ra1 = 4h1
+                z = alu_out[0]
+                if (z == 0){
+                    state.d = State.IDLE
+                }else{
+                    state.d = State.RESET_LIVES
+                }
+            
+            State.RESET_LIVES:
+                alu_alufn = 6b000000
+                asel = 2b00
+                bsel = 2b01
+                wa = 4h7
+                we= 1
+                wdsel = 2b00
+                ra1 = 4h9
+                state.d = State.RESET_SCORES
+            
+            State.RESET_SCORES:
+                alu_alufn = 6b000010
+                asel = 2b00
+                bsel = 2b01
+                wa = 4h8
+                we = 1
+                ra1 = 4h8
+                state.d = State.GAME_START
+            
+            State.GAME_START:
+                state.d = State.DISPLAY_LIVES
+            
+            State.DISPLAY_LIVES:
+                alu_alufn = 6b011010
+                ra1 = 4h7
+                state.d = State.DISPLAY_SCORE
+            
+            State.DISPLAY_SCORE:
+                alu_alufn = 6b011010
+                ra1 = 4h8
+                state.d = State.RNG
+            
+            State.RNG:
+                wa = 4h5
+                we = 1
+                wdsel = 2b11
+                ra1 = 4h5
+                state.d = State.SHOW_ITEM
+            
+            State.SHOW_ITEM:
+                alu_alufn = 6b000000
+                asel = 2b00
+                bsel = 2b01
+                wa = 4h2
+                we = 1
+                ra1 = 4h5
+                state.d = State.TIME_RESET
+            
+            State.TIME_RESET:
+                alu_alufn = 6b000000
+                asel = 2b01
+                bsel = 2b10
+                wa = 4h4
+                we = 1
+                wdsel = 2b00
+                state.d = State.DECRE_TIME
+            
+            State.DECRE_TIME:
+                
+                alu_alufn = 6b000001
+                asel = 2b00
+                bsel = 2b10
+                wa = 4h4
+                we = 1
+                wdsel = 2b00
+                ra1 = 4h4
+                state.d = State.CHECK_TIME
+            
+            
+            State.CHECK_TIME:
+                alu_alufn = 6b110011
+                asel = 2b00
+                bsel = 2b01
+                wdsel = 2b00
+                ra1 = 4h4
+                z = alu_out[0]
+                if(z!=0){
+                    state.d = State.LIFE_COUNT
+                }else{
+                    state.d = State.CHECK
+                }
+            
+            State.CHECK:
+                alu_alufn = 6b110011
+                asel = 2b00
+                bsel = 2b00
+                ra1  = 4h1 
+                ra2 = 4h2
+                z = alu_out[0]
+                if (z==0){
+                    state.d = State.WRONG
+                }else{
+                    state.d =State.CORRECT
+                }
+            
+            State.CORRECT:
+                state.d = State.SCORE
+            
+            State.SCORE:
+                alu_alufn = 6b000000
+                asel = 2b00
+                bsel = 2b01
+                wa = 4h8
+                we = 1
+                wdsel = 2b00
+                ra1 = 4h8
+                state.d = State.GAME_START
+            
+            State.WRONG:
+                state.d = State.CHECK_BOMB
+            
+            State.CHECK_BOMB:
+                alu_alufn = 6b110011
+                asel = 2b00
+                bsel = 2b11
+                ra1 = 4h2
+                z = alu_out[0]
+                if (z == 0){
+                    state.d = State.LIFE_COUNT
+                }else{
+                    state.d = State.ENDGAME
+                }
+            
+            State.LIFE_COUNT:
+                alu_alufn = 6b000001
+                asel = 2b00
+                bsel = 2b10
+                wa = 4h7
+                we = 1
+                wdsel = 2b00
+                ra1 = 4h7
+                state.d = State.CHECK_LIFE_COUNT
+            
+            State.CHECK_LIFE_COUNT:
+                alu_alufn = 6b110011
+                asel = 2b00
+                bsel = 2b01
+                ra1 = 4h7
+                z = alu_out[0]
+                if (z != 0){
+                    state.d = State.COMPARE_SCORE
+                }else {
+                    state.d = State.GAME_START
+                }
+            
+            State.COMPARE_SCORE:
+                alu_alufn = 6b110101
+                asel = 2b00
+                bsel = 2b00
+                wdsel = 2b00
+                ra1 = 4h7
+                ra2 = 4h8
+                z = alu_out[0]
+                if(z!=0){
+                    state.d = State.STORE_SCORE
+                }else{
+                    state.d = State.ENDGAME
+                }
+            
+            State.STORE_SCORE:
+                alu_alufn = 6b000000
+                asel = 2b00
+                bsel = 2b01
+                wa = 4h6
+                we = 1
+                wdsel = 2b00
+                ra1 = 4h8
+                state.d = State.ENDGAME_HIGHSCORE
+            
+            State.ENDGAME:
+                alu_alufn = 6b000010
+                asel = 2b00
+                bsel = 2b01
+                wa = 4h7
+                we = 1
+                wdsel = 2b00
+                ra1 = 4h7
+                state.d = State.IDLE
+            
+            State.ENDGAME_HIGHSCORE:
+                state.d = State.IDLE
+            
+        }
+        
+        // Output assignments
+        
+
+    }
+}

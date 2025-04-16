@@ -1,0 +1,109 @@
+module regfile (
+    input clk,             // Clock signal
+    input rst,             // Reset signal
+    input we,              // Write enable
+    input wa[4],           // Write address (4-bit for up to 16 registers)
+    input wd[32],          // Write data
+    input ra1[4],          // Read address 1
+    input ra2[4],          // Read address 2
+    output rd1[32],        // Read data 1
+    output rd2[32],         // Read data 2
+    
+    //states
+    output p1_score_out[32],
+    output start_button_out[32],
+    output screen_display_out[32],
+    output current_counter_out[32],
+    output timer_out[32],
+    output random_number_out[32],
+    output high_score_out[32],
+    output player_lives_out[32],
+    output current_player_score_out[32],
+    output constant_3_out[32]
+)
+
+{
+    .clk(clk){
+        .rst(rst){
+            dff p1_score[32](#INIT(0))
+            dff start_button[32](#INIT(0))
+            dff screen_display[32](#INIT(0))
+            dff current_counter[32](#INIT(0))
+            dff timer[32](#INIT(0))
+            dff random_number[32](#INIT(0))
+            dff high_score[32](#INIT(0))
+            dff player_lives[32](#INIT(0))
+            dff current_player_score[32](#INIT(0))
+            dff constant_3[32](#INIT(0))
+            
+        }
+    }
+        
+    pn_gen rng_gen(
+        .clk(clk),
+        .rst(rst),
+        .next(1b1),
+        .seed(32hDEADBEEF)
+    )
+     sig rng_num[32]  // this is now allowe
+      // must come before the module that uses it!
+    always {
+        random_number.d =rng_gen.num
+        //write port
+        if (we){
+            case(wa){
+                d0: p1_score.d = wd
+                d1: start_button.d = wd
+                d2: screen_display.d = wd
+                d3: current_counter.d = wd
+                d4: timer.d = wd
+                d5: random_number.d = wd
+                d6: high_score.d = wd
+                d7: player_lives.d = wd
+                d8: current_player_score.d = wd
+                d9: constant_3.d = wd
+            }
+        }
+        
+        //read port a
+        case(ra1){
+            d0: rd1 = p1_score.q 
+            d1: rd1 = start_button.q
+            d2: rd1 = screen_display.q 
+            d3: rd1 = current_counter.q 
+            d4: rd1 = timer.q
+            d5: rd1 = random_number.q 
+            d6: rd1 = high_score.q
+            d7: rd1 =player_lives.q
+            d8: rd1 = current_player_score.q
+            d9: rd1 = constant_3.q
+            default: rd1 = 0
+        }
+        
+        case(ra2){
+            d0: rd2 = p1_score.q 
+            d1: rd2 = start_button.q
+            d2: rd2 = screen_display.q 
+            d3: rd2 = current_counter.q 
+            d4: rd2 = timer.q
+            d5: rd2 = random_number.q 
+            d6: rd2 = high_score.q
+            d7: rd2 =player_lives.q
+            d8: rd2 = current_player_score.q
+            d9: rd2 = constant_3.q
+            default: rd2=0
+        }
+        
+        p1_score_out = p1_score.q 
+        start_button_out = start_button.q
+        screen_display_out = screen_display.q 
+        current_counter_out = current_counter.q 
+        timer_out = timer.q
+        random_number_out = random_number.q 
+        high_score_out = high_score.q
+        player_lives_out = player_lives.q
+        current_player_score_out = current_player_score.q
+        constant_3_out = constant_3.q
+        
+    }
+}

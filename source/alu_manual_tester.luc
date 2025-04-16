@@ -149,5 +149,6 @@ module alu_manual_tester#(
         seg.values = decimal_renderer.digits
         io_segment = ~seg.seg
         io_select = ~seg.sel
+        //io_led = ~seg
     }
 }
